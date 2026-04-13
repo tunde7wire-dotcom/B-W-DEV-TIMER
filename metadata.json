@@ -1,0 +1,6 @@
+{
+  "name": "B&W Film Dev Timer",
+  "description": "A professional offline-first PWA for black and white film development with session recovery, temperature compensation, and voice guidance.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

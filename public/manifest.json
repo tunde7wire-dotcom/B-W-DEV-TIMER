@@ -1,0 +1,22 @@
+{
+  "name": "B&W Film Dev Timer",
+  "short_name": "Dev Timer",
+  "description": "Black and white film development timer with custom recipes and temperature compensation.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://picsum.photos/seed/darkroom/192/192",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://picsum.photos/seed/darkroom/512/512",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
