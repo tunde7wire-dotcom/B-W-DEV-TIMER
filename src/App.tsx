@@ -13,6 +13,7 @@ import { SettingsScreen } from './screens/SettingsScreen';
 import { SessionSummaryScreen } from './screens/SessionSummaryScreen';
 import { RecipeEditScreen } from './screens/RecipeEditScreen';
 import { Recipe, Session } from './types';
+import { useAudio } from './hooks/useAudio';
 
 type Screen = 'home' | 'recipe-detail' | 'recipe-edit' | 'timer' | 'summary' | 'history' | 'settings';
 
@@ -23,6 +24,7 @@ export default function App() {
   const [lastSession, setLastSession] = useState<Session | null>(null);
 
   const { settings, updateRecipe, addRecipe, activeTimer, recipes } = useStore();
+  const { unlockAudio } = useAudio();
 
   // Session recovery
   useEffect(() => {
@@ -96,7 +98,10 @@ export default function App() {
             recipe={selectedRecipe} 
             onBack={() => navigateTo('home')} 
             onEdit={() => navigateTo('recipe-edit', selectedRecipe)}
-            onStart={(data) => navigateTo('timer', data)} 
+            onStart={(data) => {
+              unlockAudio();
+              navigateTo('timer', data);
+            }} 
           />
         ) : null;
       case 'recipe-edit':

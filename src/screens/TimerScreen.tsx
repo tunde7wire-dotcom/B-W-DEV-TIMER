@@ -26,6 +26,7 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
   }, [recipe, temp, pushPull]);
 
   const { state, currentStep, nextStep, prevStep, toggleTimer, extendTime, allSteps } = useTimer(recipe, compensatedDevTime, temp, pushPull);
+  const { unlockAudio } = useAudio();
   const [isLocked, setIsLocked] = React.useState(false);
   const [lockHoldProgress, setLockHoldProgress] = React.useState(0);
   const lockTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -121,7 +122,10 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
         </div>
         <div className="flex items-center gap-1">
           <button 
-            onClick={() => useStore.getState().updateSettings({ voiceEnabled: !settings.voiceEnabled })} 
+            onClick={() => {
+              unlockAudio();
+              useStore.getState().updateSettings({ voiceEnabled: !settings.voiceEnabled });
+            }} 
             className="p-2 opacity-50"
           >
             {settings.voiceEnabled ? <Volume2 size={24} /> : <VolumeX size={24} />}
@@ -236,7 +240,10 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
             variant="primary" 
             size="xl" 
             className="h-24 w-24 rounded-full shadow-2xl"
-            onClick={toggleTimer}
+            onClick={() => {
+              unlockAudio();
+              toggleTimer();
+            }}
             disabled={isLocked}
           >
             {state.isRunning ? <Pause size={40} fill="currentColor" /> : <Play size={40} fill="currentColor" className="ml-1" />}

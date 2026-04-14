@@ -54,5 +54,28 @@ export const useAudio = () => {
     window.speechSynthesis.speak(utterance);
   }, [settings.voiceEnabled]);
 
-  return { playBeep, speak };
+  const unlockAudio = useCallback(async () => {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    const ctx = audioCtxRef.current;
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
+    
+    // Play a silent buffer to fully unlock iOS audio
+    const buffer = ctx.createBuffer(1, 1, 22050);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start(0);
+
+    // Also trigger a silent speech utterance to unlock speech synthesis
+    if (window.speechSynthesis) {
+      const silent = new SpeechSynthesisUtterance("");
+      window.speechSynthesis.speak(silent);
+    }
+  }, []);
+
+  return { playBeep, speak, unlockAudio };
 };

@@ -31,14 +31,15 @@ export const Layout: React.FC<LayoutProps> = ({ children, title, leftAction, rig
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-20 touch-auto">
+      <main className="flex-1 overflow-y-auto pb-20 touch-auto will-change-scroll overscroll-contain">
         <AnimatePresence mode="wait">
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="p-4"
+            key={title} // Use title as key for screen transitions
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="p-4 transform-gpu"
           >
             {children}
           </motion.div>
@@ -52,7 +53,7 @@ export const Card: React.FC<{ children: React.ReactNode; className?: string; onC
   <div 
     onClick={onClick}
     className={cn(
-      "bg-white/5 border border-white/10 rounded-2xl p-4 active:scale-[0.98] transition-transform",
+      "bg-white/5 border border-white/10 rounded-2xl p-4 active:scale-[0.98] transition-transform transform-gpu",
       onClick && "cursor-pointer",
       className
     )}
