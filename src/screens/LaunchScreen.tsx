@@ -5,12 +5,12 @@ import { Button } from '../components/Layout';
 const TankInteractiveWrapper: React.FC<{ children: React.ReactNode, isActive: boolean }> = ({ children, isActive }) => {
   const x = useMotionValue(0);
   
-  // Primary tilt from drag
-  const rotate = useTransform(x, [-50, 50], [-12, 12]);
-  const springRotate = useSpring(rotate, { stiffness: 300, damping: 20 });
+  // Primary tilt from drag - mapped to allow full inversion (-180 to 180 degrees)
+  const rotate = useTransform(x, [-150, 150], [-180, 180]);
+  const springRotate = useSpring(rotate, { stiffness: 200, damping: 20 });
   
   // Secondary delayed tilt (slosh)
-  const sloshRotate = useTransform(x, [-50, 50], [4, -4]);
+  const sloshRotate = useTransform(x, [-150, 150], [15, -15]);
   const springSlosh = useSpring(sloshRotate, { stiffness: 100, damping: 10 });
 
   const controls = useAnimation();
@@ -19,7 +19,7 @@ const TankInteractiveWrapper: React.FC<{ children: React.ReactNode, isActive: bo
     if (Math.abs(info.velocity.x) > 200) {
       const direction = info.velocity.x > 0 ? 1 : -1;
       controls.start({
-        rotate: [0, direction * 8, -direction * 5, direction * 2, 0],
+        rotate: [0, direction * 15, -direction * 10, direction * 5, 0],
         transition: { duration: 0.8, ease: "easeInOut" }
       });
     }
@@ -29,14 +29,14 @@ const TankInteractiveWrapper: React.FC<{ children: React.ReactNode, isActive: bo
     <motion.div
       drag={isActive ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.3}
+      dragElastic={0.8} // Increased elasticity to allow further dragging
       onDragEnd={handleDragEnd}
-      style={{ x, rotate: springRotate }}
-      whileTap={isActive ? { scale: 0.98, y: 2 } : {}}
-      className={`w-full h-full origin-bottom ${isActive ? 'cursor-grab active:cursor-grabbing' : ''}`}
+      style={{ x, rotate: springRotate, touchAction: isActive ? 'none' : 'auto' }}
+      whileTap={isActive ? { scale: 0.95, y: 5 } : {}}
+      className={`w-full h-full origin-center ${isActive ? 'cursor-grab active:cursor-grabbing' : ''}`}
     >
-      <motion.div style={{ rotate: springSlosh }} className="w-full h-full origin-bottom">
-        <motion.div animate={controls} className="w-full h-full origin-bottom">
+      <motion.div style={{ rotate: springSlosh }} className="w-full h-full origin-center">
+        <motion.div animate={controls} className="w-full h-full origin-center">
           {children}
         </motion.div>
       </motion.div>
