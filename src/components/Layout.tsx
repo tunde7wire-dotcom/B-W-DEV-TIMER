@@ -22,7 +22,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, title, leftAction, rig
     <div className={cn(
       "h-full flex flex-col font-sans transition-colors duration-500",
       settings.darkroomMode ? "bg-black text-red-600" : "bg-[#151619] text-white"
-    )}>
+    )} style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
       {/* Header */}
       <header className="h-16 flex items-center justify-between px-4 border-b border-white/10 sticky top-0 bg-inherit z-40">
         <div className="w-10">{leftAction}</div>

@@ -107,7 +107,10 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
     : 0;
 
   return (
-    <div className={settings.darkroomMode ? "bg-black text-red-600 h-full flex flex-col" : "bg-[#151619] text-white h-full flex flex-col"}>
+    <div 
+      className={settings.darkroomMode ? "bg-black text-red-600 h-full flex flex-col" : "bg-[#151619] text-white h-full flex flex-col"}
+      style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
       {/* Header */}
       <header className="p-4 flex items-center justify-between">
         <button 

@@ -47,7 +47,7 @@ export const useStore = create<AppState>()(
       activeTimer: null,
 
       addRecipe: (recipe) => set((state) => ({ 
-        recipes: [...state.recipes, { ...recipe, id: crypto.randomUUID(), isCustom: true }] 
+        recipes: [...state.recipes, { ...recipe, id: recipe.id || crypto.randomUUID(), isCustom: true }] 
       })),
       
       updateRecipe: (recipe) => set((state) => ({
@@ -76,44 +76,11 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'bw-dev-timer-storage',
-      version: 2,
+      version: 3,
       migrate: (persistedState: any, version: number) => {
-        if (version < 2) {
-          // Add Dryer step to all recipes that don't have it
-          const updatedRecipes = persistedState.recipes.map((recipe: any) => {
-            const hasDryer = recipe.steps.some((s: any) => s.name.toLowerCase() === 'dryer');
-            if (!hasDryer) {
-              return {
-                ...recipe,
-                steps: [
-                  ...recipe.steps,
-                  {
-                    id: crypto.randomUUID(),
-                    name: 'Dryer',
-                    duration: 900,
-                    agitation: {
-                      enabled: false,
-                      initialDuration: 30,
-                      interval: 60,
-                      duration: 10,
-                      alertType: 'both'
-                    },
-                    enabled: true,
-                    notes: ''
-                  }
-                ]
-              };
-            }
-            // Also ensure Final Wash has the note if it's missing
-            const updatedSteps = recipe.steps.map((s: any) => {
-              if (s.name.toLowerCase() === 'final wash' && !s.notes) {
-                return { ...s, notes: 'Wash Patterson tank with hot water prior to Wetting Agent step' };
-              }
-              return s;
-            });
-            return { ...recipe, steps: updatedSteps };
-          });
-          return { ...persistedState, recipes: updatedRecipes };
+        if (version < 3) {
+          // Reset recipes to just the new PRESETS
+          return { ...persistedState, recipes: PRESETS };
         }
         return persistedState;
       }
