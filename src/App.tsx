@@ -48,8 +48,10 @@ export default function App() {
   useEffect(() => {
     if (settings.darkroomMode) {
       document.body.style.backgroundColor = 'black';
+      document.documentElement.style.backgroundColor = 'black';
     } else {
       document.body.style.backgroundColor = '#151619';
+      document.documentElement.style.backgroundColor = '#151619';
     }
   }, [settings.darkroomMode]);
 
@@ -208,7 +210,7 @@ export default function App() {
   };
 
   return (
-    <div className="max-w-md mx-auto h-full shadow-2xl overflow-hidden relative">
+    <div className={`max-w-md mx-auto h-full shadow-2xl overflow-hidden relative transition-colors duration-500 ${settings.darkroomMode ? 'bg-black' : 'bg-[#151619]'}`}>
       {renderScreen()}
 
       {/* Interaction Blocker */}

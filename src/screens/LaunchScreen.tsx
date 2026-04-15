@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, useMotionValue, useTransform, useSpring, useAnimation, PanInfo, useMotionValueEvent } from 'motion/react';
 import { Button } from '../components/Layout';
+import { useStore } from '../store/useStore';
 
 const TankInteractiveWrapper: React.FC<{ children: React.ReactNode, isActive: boolean, isPouring?: boolean, onEasterEggTrigger?: () => void }> = ({ children, isActive, isPouring, onEasterEggTrigger }) => {
   const rotateTarget = useMotionValue(0);
@@ -136,6 +137,8 @@ export const LaunchScreen: React.FC<{ onStart: () => void, transitionStage?: num
   const [easterEggPouring, setEasterEggPouring] = useState(false);
   const [easterEggKey, setEasterEggKey] = useState(0);
 
+  const { settings } = useStore();
+
   const handleEasterEgg = () => {
     setEasterEggPouring(true);
     setEasterEggKey(prev => prev + 1);
@@ -161,7 +164,7 @@ export const LaunchScreen: React.FC<{ onStart: () => void, transitionStage?: num
 
   return (
     <div 
-      className={`h-full bg-gradient-to-b from-[#FAF8F3] via-[#F4F2ED] to-[#EAE6DD] flex flex-col items-center justify-center relative overflow-hidden ${!showStart ? 'cursor-pointer' : ''}`}
+      className={`h-full flex flex-col items-center justify-center relative overflow-hidden ${!showStart ? 'cursor-pointer' : ''} ${settings.darkroomMode ? 'bg-black' : 'bg-gradient-to-b from-[#FAF8F3] via-[#F4F2ED] to-[#EAE6DD]'}`}
       onClick={handleSkip}
     >
       
@@ -280,13 +283,13 @@ export const LaunchScreen: React.FC<{ onStart: () => void, transitionStage?: num
             
             {/* Frames (Inner Title Panels) */}
             <div className="h-12 w-20 bg-black/80 border border-white/10 flex items-center justify-center rounded-sm shadow-inner shrink-0 ml-4 z-10">
-              <span className="text-white font-bold text-lg tracking-widest">B&amp;W</span>
+              <span className={`font-bold text-lg tracking-widest ${settings.darkroomMode ? 'text-red-500' : 'text-white'}`}>B&amp;W</span>
             </div>
             <div className="h-12 w-20 bg-black/80 border border-white/10 flex items-center justify-center rounded-sm shadow-inner shrink-0 z-10">
-              <span className="text-white font-bold text-lg tracking-widest">DEV</span>
+              <span className={`font-bold text-lg tracking-widest ${settings.darkroomMode ? 'text-red-500' : 'text-white'}`}>DEV</span>
             </div>
             <div className="h-12 w-20 bg-black/80 border border-white/10 flex items-center justify-center rounded-sm shadow-inner shrink-0 z-10">
-              <span className="text-white font-bold text-lg tracking-widest">TIMER</span>
+              <span className={`font-bold text-lg tracking-widest ${settings.darkroomMode ? 'text-red-500' : 'text-white'}`}>TIMER</span>
             </div>
           </motion.div>
         </motion.div>
@@ -582,7 +585,7 @@ export const LaunchScreen: React.FC<{ onStart: () => void, transitionStage?: num
         <motion.button
           onClick={onStart}
           whileTap={{ scale: 0.95 }}
-          className="px-8 py-4 rounded-full bg-[#111111] text-[#FFFFFF] text-lg font-medium tracking-wide shadow-[0_4px_12px_rgba(17,17,17,0.12)] relative overflow-hidden"
+          className={`px-8 py-4 rounded-full text-lg font-medium tracking-wide shadow-[0_4px_12px_rgba(17,17,17,0.12)] relative overflow-hidden ${settings.darkroomMode ? 'bg-red-900 text-red-100 shadow-red-900/20' : 'bg-[#111111] text-[#FFFFFF]'}`}
         >
           <span className="relative z-10">Enter the Darkroom</span>
           {/* Dynamic Light Off Shadows */}

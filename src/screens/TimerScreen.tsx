@@ -143,7 +143,7 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
           >
             {isLocked ? (
               <>
-                <Lock size={24} className={lockHoldProgress > 0 ? "text-white" : ""} />
+                <Lock size={24} className={lockHoldProgress > 0 ? (settings.darkroomMode ? "text-red-500" : "text-white") : ""} />
                 {lockHoldProgress > 0 && (
                   <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none">
                     <circle
@@ -151,7 +151,7 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
                       cy="50%"
                       r="40%"
                       fill="none"
-                      stroke="white"
+                      stroke={settings.darkroomMode ? "#ef4444" : "white"}
                       strokeWidth="2"
                       strokeDasharray="100 100"
                       strokeDashoffset={100 - lockHoldProgress}
@@ -171,7 +171,7 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
            <div className="w-[85%] aspect-square rounded-full relative">
               {/* Static Background Ring */}
-              <div className="absolute inset-0 border-[16px] border-white/5 rounded-full" />
+              <div className={`absolute inset-0 border-[16px] rounded-full ${settings.darkroomMode ? 'border-red-900/20' : 'border-white/5'}`} />
               
               {/* Agitation Progress Ring */}
               <svg className="absolute inset-0 w-full h-full -rotate-90">
@@ -218,9 +218,9 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
       </div>
 
       {/* Controls */}
-      <footer className="p-8 space-y-8 bg-black/20 backdrop-blur-xl border-t border-white/5">
+      <footer className={`p-8 space-y-8 backdrop-blur-xl border-t ${settings.darkroomMode ? 'bg-red-950/20 border-red-900/30' : 'bg-black/20 border-white/5'}`}>
         {/* Progress Bar */}
-        <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+        <div className={`h-1 w-full rounded-full overflow-hidden ${settings.darkroomMode ? 'bg-red-900/30' : 'bg-white/10'}`}>
           <motion.div 
             className="h-full bg-current"
             initial={{ width: 0 }}

@@ -14,6 +14,7 @@ interface RecipeEditScreenProps {
 }
 
 export const RecipeEditScreen: React.FC<RecipeEditScreenProps> = ({ recipe, onBack, onSave }) => {
+  const { settings } = useStore();
   const [editedRecipe, setEditedRecipe] = useState<Recipe>({ ...recipe });
   const [activeSheet, setActiveSheet] = useState<'film' | 'developer' | 'iso' | 'dilution' | null>(null);
 
@@ -117,7 +118,7 @@ export const RecipeEditScreen: React.FC<RecipeEditScreenProps> = ({ recipe, onBa
     return (
       <div className={cn("space-y-2 transition-opacity", disabled && "opacity-50 pointer-events-none")}>
         <label className="text-[10px] uppercase font-bold opacity-40 ml-2">{label}</label>
-        <div className="flex items-center justify-center gap-4 bg-white/5 rounded-2xl p-4 border border-white/10">
+        <div className={`flex items-center justify-center gap-4 rounded-2xl p-4 border ${settings.darkroomMode ? 'bg-red-950/10 border-red-900/30' : 'bg-white/5 border-white/10'}`}>
           <WheelPicker 
             label="MIN"
             value={mins} 
@@ -153,7 +154,7 @@ export const RecipeEditScreen: React.FC<RecipeEditScreenProps> = ({ recipe, onBa
               type="text" 
               value={editedRecipe.name}
               onChange={e => setEditedRecipe({ ...editedRecipe, name: e.target.value })}
-              className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-white/30"
+              className={`w-full rounded-xl p-4 focus:outline-none ${settings.darkroomMode ? 'bg-red-950/10 border border-red-900/30 text-red-500 focus:border-red-500/50' : 'bg-white/5 border border-white/10 text-white focus:border-white/30'}`}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -161,7 +162,7 @@ export const RecipeEditScreen: React.FC<RecipeEditScreenProps> = ({ recipe, onBa
               <label className="text-[10px] uppercase font-bold opacity-40 ml-2">Film</label>
               <button 
                 onClick={() => setActiveSheet('film')}
-                className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white text-left focus:outline-none focus:border-white/30 flex justify-between items-center"
+                className={`w-full rounded-xl p-4 text-left focus:outline-none flex justify-between items-center ${settings.darkroomMode ? 'bg-red-950/10 border border-red-900/30 text-red-500 focus:border-red-500/50' : 'bg-white/5 border border-white/10 text-white focus:border-white/30'}`}
               >
                 <span className={editedRecipe.film ? '' : 'opacity-50'}>{editedRecipe.film || 'Select Film'}</span>
                 <ChevronDown size={16} className="opacity-50" />
@@ -172,7 +173,7 @@ export const RecipeEditScreen: React.FC<RecipeEditScreenProps> = ({ recipe, onBa
               <button 
                 onClick={() => setActiveSheet('developer')}
                 disabled={!editedRecipe.film}
-                className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white text-left focus:outline-none focus:border-white/30 flex justify-between items-center disabled:opacity-50"
+                className={`w-full rounded-xl p-4 text-left focus:outline-none flex justify-between items-center disabled:opacity-50 ${settings.darkroomMode ? 'bg-red-950/10 border border-red-900/30 text-red-500 focus:border-red-500/50' : 'bg-white/5 border border-white/10 text-white focus:border-white/30'}`}
               >
                 <span className={editedRecipe.developer ? '' : 'opacity-50'}>{editedRecipe.developer || 'Select Developer'}</span>
                 <ChevronDown size={16} className="opacity-50" />
@@ -186,7 +187,7 @@ export const RecipeEditScreen: React.FC<RecipeEditScreenProps> = ({ recipe, onBa
               <button 
                 onClick={() => setActiveSheet('iso')}
                 disabled={!editedRecipe.developer}
-                className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white text-left focus:outline-none focus:border-white/30 flex justify-between items-center disabled:opacity-50"
+                className={`w-full rounded-xl p-4 text-left focus:outline-none flex justify-between items-center disabled:opacity-50 ${settings.darkroomMode ? 'bg-red-950/10 border border-red-900/30 text-red-500 focus:border-red-500/50' : 'bg-white/5 border border-white/10 text-white focus:border-white/30'}`}
               >
                 <span className={editedRecipe.iso ? '' : 'opacity-50'}>{editedRecipe.iso || 'Select ISO'}</span>
                 <ChevronDown size={16} className="opacity-50" />
@@ -197,7 +198,7 @@ export const RecipeEditScreen: React.FC<RecipeEditScreenProps> = ({ recipe, onBa
               <button 
                 onClick={() => setActiveSheet('dilution')}
                 disabled={!editedRecipe.iso}
-                className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white text-left focus:outline-none focus:border-white/30 flex justify-between items-center disabled:opacity-50"
+                className={`w-full rounded-xl p-4 text-left focus:outline-none flex justify-between items-center disabled:opacity-50 ${settings.darkroomMode ? 'bg-red-950/10 border border-red-900/30 text-red-500 focus:border-red-500/50' : 'bg-white/5 border border-white/10 text-white focus:border-white/30'}`}
               >
                 <span className={editedRecipe.dilution ? '' : 'opacity-50'}>{editedRecipe.dilution || 'Select Dilution'}</span>
                 <ChevronDown size={16} className="opacity-50" />
@@ -212,7 +213,7 @@ export const RecipeEditScreen: React.FC<RecipeEditScreenProps> = ({ recipe, onBa
                 type="number" 
                 value={editedRecipe.baseTemp}
                 onChange={e => setEditedRecipe({ ...editedRecipe, baseTemp: parseInt(e.target.value) || 0 })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-white/30"
+                className={`w-full rounded-xl p-4 focus:outline-none ${settings.darkroomMode ? 'bg-red-950/10 border border-red-900/30 text-red-500 focus:border-red-500/50' : 'bg-white/5 border border-white/10 text-white focus:border-white/30'}`}
               />
             </div>
             <DurationInput 
@@ -262,7 +263,7 @@ export const RecipeEditScreen: React.FC<RecipeEditScreenProps> = ({ recipe, onBa
                       value={step.notes}
                       onChange={e => updateStep(step.id, { notes: e.target.value })}
                       placeholder="Enter notes for this step..."
-                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white text-sm focus:outline-none focus:border-white/30 min-h-[80px] resize-none"
+                      className={`w-full rounded-xl p-4 text-sm focus:outline-none min-h-[80px] resize-none ${settings.darkroomMode ? 'bg-red-950/10 border border-red-900/30 text-red-500 focus:border-red-500/50' : 'bg-white/5 border border-white/10 text-white focus:border-white/30'}`}
                     />
                   </div>
 
@@ -274,7 +275,7 @@ export const RecipeEditScreen: React.FC<RecipeEditScreenProps> = ({ recipe, onBa
                           type="number" 
                           value={step.agitation.initialDuration}
                           onChange={e => updateStep(step.id, { agitation: { ...step.agitation, initialDuration: parseInt(e.target.value) || 0 } })}
-                          className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs focus:outline-none"
+                          className={`w-full rounded-lg p-2 text-xs focus:outline-none ${useStore.getState().settings.darkroomMode ? 'bg-red-950/10 border border-red-900/30 text-red-500 focus:border-red-500/50' : 'bg-white/5 border border-white/10 text-white focus:border-white/30'}`}
                         />
                       </div>
                       <div className="space-y-1">
@@ -283,7 +284,7 @@ export const RecipeEditScreen: React.FC<RecipeEditScreenProps> = ({ recipe, onBa
                           type="number" 
                           value={step.agitation.interval}
                           onChange={e => updateStep(step.id, { agitation: { ...step.agitation, interval: parseInt(e.target.value) || 0 } })}
-                          className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs focus:outline-none"
+                          className={`w-full rounded-lg p-2 text-xs focus:outline-none ${useStore.getState().settings.darkroomMode ? 'bg-red-950/10 border border-red-900/30 text-red-500 focus:border-red-500/50' : 'bg-white/5 border border-white/10 text-white focus:border-white/30'}`}
                         />
                       </div>
                       <div className="space-y-1">
@@ -292,7 +293,7 @@ export const RecipeEditScreen: React.FC<RecipeEditScreenProps> = ({ recipe, onBa
                           type="number" 
                           value={step.agitation.duration}
                           onChange={e => updateStep(step.id, { agitation: { ...step.agitation, duration: parseInt(e.target.value) || 0 } })}
-                          className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs focus:outline-none"
+                          className={`w-full rounded-lg p-2 text-xs focus:outline-none ${useStore.getState().settings.darkroomMode ? 'bg-red-950/10 border border-red-900/30 text-red-500 focus:border-red-500/50' : 'bg-white/5 border border-white/10 text-white focus:border-white/30'}`}
                         />
                       </div>
                     </div>

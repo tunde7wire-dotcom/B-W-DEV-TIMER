@@ -43,9 +43,9 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ recipe, 
               <Thermometer size={14} /> Temperature
             </div>
             <div className="flex items-center justify-between">
-              <button onClick={() => setTemp(t => t - 1)} className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center">-</button>
+              <button onClick={() => setTemp(t => t - 1)} className={`h-8 w-8 rounded-full flex items-center justify-center ${settings.darkroomMode ? 'bg-red-900/50' : 'bg-white/10'}`}>-</button>
               <span className="text-xl font-bold">{temp}°{recipe.unit}</span>
-              <button onClick={() => setTemp(t => t + 1)} className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center">+</button>
+              <button onClick={() => setTemp(t => t + 1)} className={`h-8 w-8 rounded-full flex items-center justify-center ${settings.darkroomMode ? 'bg-red-900/50' : 'bg-white/10'}`}>+</button>
             </div>
           </Card>
           <Card className="space-y-2">
@@ -53,15 +53,15 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ recipe, 
               <FastForward size={14} /> Push / Pull
             </div>
             <div className="flex items-center justify-between">
-              <button onClick={() => setPushPull(p => Math.max(-2, p - 1))} className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center">-</button>
+              <button onClick={() => setPushPull(p => Math.max(-2, p - 1))} className={`h-8 w-8 rounded-full flex items-center justify-center ${settings.darkroomMode ? 'bg-red-900/50' : 'bg-white/10'}`}>-</button>
               <span className="text-xl font-bold">{pushPull > 0 ? `+${pushPull}` : pushPull}</span>
-              <button onClick={() => setPushPull(p => Math.min(3, p + 1))} className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center">+</button>
+              <button onClick={() => setPushPull(p => Math.min(3, p + 1))} className={`h-8 w-8 rounded-full flex items-center justify-center ${settings.darkroomMode ? 'bg-red-900/50' : 'bg-white/10'}`}>+</button>
             </div>
           </Card>
         </section>
 
         {/* Time Summary */}
-        <Card className={isAdjusted ? "bg-white/10 border-white/30" : ""}>
+        <Card className={isAdjusted ? (settings.darkroomMode ? "bg-red-950/30 border-red-500/30" : "bg-white/10 border-white/30") : ""}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-widest opacity-50 mb-1">Total Dev Time</p>
@@ -70,7 +70,7 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ recipe, 
             {isAdjusted && (
               <div className="text-right">
                 <p className="text-[10px] opacity-40 line-through">{formatTime(recipe.baseTime)} base</p>
-                <p className="text-[10px] text-green-400">Adjusted</p>
+                <p className={`text-[10px] ${settings.darkroomMode ? 'text-red-400' : 'text-green-400'}`}>Adjusted</p>
               </div>
             )}
           </div>
@@ -80,12 +80,12 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ recipe, 
         <section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-xs font-bold uppercase tracking-widest opacity-50">Workflow Steps</h2>
-            <button onClick={onEdit} className="text-xs font-bold uppercase tracking-widest text-white/80">Edit Steps</button>
+            <button onClick={onEdit} className={`text-xs font-bold uppercase tracking-widest ${settings.darkroomMode ? 'text-red-500/80' : 'text-white/80'}`}>Edit Steps</button>
           </div>
           <div className="space-y-2">
             {recipe.steps.map((step, idx) => (
-              <div key={step.id} className="flex items-center gap-4 p-3 bg-white/5 rounded-xl border border-white/5">
-                <div className="h-6 w-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold">
+              <div key={step.id} className={`flex items-center gap-4 p-3 rounded-xl border ${settings.darkroomMode ? 'bg-red-950/10 border-red-900/30' : 'bg-white/5 border-white/5'}`}>
+                <div className={`h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold ${settings.darkroomMode ? 'bg-red-900/50' : 'bg-white/10'}`}>
                   {idx + 1}
                 </div>
                 <div className="flex-1">

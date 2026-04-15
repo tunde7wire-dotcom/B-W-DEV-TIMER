@@ -13,7 +13,7 @@ interface HomeScreenProps {
 }
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectRecipe, onNewRecipe, onGoToHistory, onGoToSettings }) => {
-  const { recipes, lastRecipeId, history, deleteRecipe, deleteRecipes } = useStore();
+  const { recipes, lastRecipeId, history, deleteRecipe, deleteRecipes, settings } = useStore();
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   
@@ -53,14 +53,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectRecipe, onNewRec
             <h2 className="text-xs font-bold uppercase tracking-widest opacity-50 mb-3">Quick Start</h2>
             <Card 
               onClick={() => onSelectRecipe(lastRecipe)}
-              className="bg-gradient-to-br from-white/10 to-white/5 border-white/20"
+              className={settings.darkroomMode ? "bg-red-950/20 border-red-900/50" : "bg-gradient-to-br from-white/10 to-white/5 border-white/20"}
             >
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xl font-bold">{lastRecipe.name}</h3>
                   <p className="text-sm opacity-60">{lastRecipe.film} • {lastRecipe.developer}</p>
                 </div>
-                <div className="h-12 w-12 rounded-full bg-white text-black flex items-center justify-center">
+                <div className={`h-12 w-12 rounded-full flex items-center justify-center ${settings.darkroomMode ? 'bg-red-900 text-red-100' : 'bg-white text-black'}`}>
                   <Play fill="currentColor" size={20} />
                 </div>
               </div>
@@ -80,14 +80,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectRecipe, onNewRec
                   setIsSelectionMode(!isSelectionMode);
                   setSelectedIds([]);
                 }}
-                className="text-xs font-bold uppercase tracking-widest text-white/60"
+                className="text-xs font-bold uppercase tracking-widest opacity-60"
               >
                 {isSelectionMode ? 'Cancel' : 'Select'}
               </button>
               {!isSelectionMode && (
                 <button 
                   onClick={onNewRecipe}
-                  className="text-xs font-bold uppercase tracking-widest text-white/80 flex items-center gap-1"
+                  className="text-xs font-bold uppercase tracking-widest opacity-80 flex items-center gap-1"
                 >
                   <Plus size={14} /> New
                 </button>
@@ -99,13 +99,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectRecipe, onNewRec
               <Card 
                 key={recipe.id} 
                 onClick={() => isSelectionMode ? toggleSelection(recipe.id) : onSelectRecipe(recipe)}
-                className={`py-3 transition-all ${isSelectionMode && selectedIds.includes(recipe.id) ? 'border-white/40 bg-white/5' : ''}`}
+                className={`py-3 transition-all ${isSelectionMode && selectedIds.includes(recipe.id) ? (settings.darkroomMode ? 'border-red-500/40 bg-red-900/20' : 'border-white/40 bg-white/5') : ''}`}
               >
                 <div className="flex items-center gap-3">
                   {isSelectionMode && (
-                    <div className="text-white/40">
+                    <div className="opacity-40">
                       {selectedIds.includes(recipe.id) ? (
-                        <CheckCircle2 size={20} className="text-white" />
+                        <CheckCircle2 size={20} className="opacity-100" />
                       ) : (
                         <Circle size={20} />
                       )}
@@ -151,12 +151,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectRecipe, onNewRec
           <section>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-xs font-bold uppercase tracking-widest opacity-50">Recent Sessions</h2>
-              <button onClick={onGoToHistory} className="text-xs font-bold uppercase tracking-widest text-white/80">View All</button>
+              <button onClick={onGoToHistory} className="text-xs font-bold uppercase tracking-widest opacity-80">View All</button>
             </div>
             <div className="space-y-2">
               {recentHistory.map(session => (
                 <div key={session.id} className="flex items-center gap-3 p-2">
-                  <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center">
+                  <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${settings.darkroomMode ? 'bg-red-900/30' : 'bg-white/5'}`}>
                     <Clock size={16} className="opacity-50" />
                   </div>
                   <div className="flex-1">

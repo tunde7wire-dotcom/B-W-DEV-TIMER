@@ -49,18 +49,24 @@ export const Layout: React.FC<LayoutProps> = ({ children, title, leftAction, rig
   );
 };
 
-export const Card: React.FC<{ children: React.ReactNode; className?: string; onClick?: () => void }> = ({ children, className, onClick }) => (
-  <div 
-    onClick={onClick}
-    className={cn(
-      "bg-white/5 border border-white/10 rounded-2xl p-4 active:scale-[0.98] transition-transform transform-gpu",
-      onClick && "cursor-pointer",
-      className
-    )}
-  >
-    {children}
-  </div>
-);
+export const Card: React.FC<{ children: React.ReactNode; className?: string; onClick?: () => void }> = ({ children, className, onClick }) => {
+  const { settings } = useStore();
+  return (
+    <div 
+      onClick={onClick}
+      className={cn(
+        "border rounded-2xl p-4 active:scale-[0.98] transition-transform transform-gpu",
+        settings.darkroomMode 
+          ? "bg-black border-red-900/50 shadow-[0_0_15px_rgba(220,38,38,0.1)]" 
+          : "bg-white/5 border-white/10",
+        onClick && "cursor-pointer",
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+};
 
 export const Button: React.FC<{ 
   children: React.ReactNode; 
@@ -70,11 +76,19 @@ export const Button: React.FC<{
   onClick?: () => void;
   disabled?: boolean;
 }> = ({ children, variant = 'primary', size = 'md', className, onClick, disabled }) => {
+  const { settings } = useStore();
+  
   const variants = {
-    primary: "bg-white text-black hover:bg-white/90",
-    secondary: "bg-white/10 text-white hover:bg-white/20 border border-white/10",
+    primary: settings.darkroomMode 
+      ? "bg-red-900 text-red-100 hover:bg-red-800 border border-red-700" 
+      : "bg-white text-black hover:bg-white/90",
+    secondary: settings.darkroomMode
+      ? "bg-black text-red-500 hover:bg-red-950/30 border border-red-900/50"
+      : "bg-white/10 text-white hover:bg-white/20 border border-white/10",
     danger: "bg-red-600 text-white hover:bg-red-700",
-    ghost: "bg-transparent text-white hover:bg-white/5",
+    ghost: settings.darkroomMode
+      ? "bg-transparent text-red-500 hover:bg-red-950/30"
+      : "bg-transparent text-white hover:bg-white/5",
   };
 
   const sizes = {

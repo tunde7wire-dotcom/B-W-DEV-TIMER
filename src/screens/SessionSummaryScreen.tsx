@@ -3,6 +3,7 @@ import { Layout, Card, Button } from '../components/Layout';
 import { Session } from '../types';
 import { CheckCircle2, Star, Calendar, Thermometer, Clock } from 'lucide-react';
 import { formatTime } from '../utils/calculations';
+import { useStore } from '../store/useStore';
 
 interface SessionSummaryScreenProps {
   session: Session;
@@ -10,6 +11,8 @@ interface SessionSummaryScreenProps {
 }
 
 export const SessionSummaryScreen: React.FC<SessionSummaryScreenProps> = ({ session, onDone }) => {
+  const { settings } = useStore();
+  
   return (
     <Layout title="Session Complete">
       <div className="space-y-8 text-center py-8">
@@ -23,7 +26,7 @@ export const SessionSummaryScreen: React.FC<SessionSummaryScreenProps> = ({ sess
         </div>
 
         <Card className="text-left space-y-4">
-          <div className="flex items-center justify-between border-b border-white/5 pb-4">
+          <div className={`flex items-center justify-between border-b pb-4 ${settings.darkroomMode ? 'border-red-900/30' : 'border-white/5'}`}>
             <h3 className="font-bold text-xl">{session.recipeName}</h3>
           </div>
           

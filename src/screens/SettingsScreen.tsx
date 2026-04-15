@@ -11,18 +11,18 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
   const { settings, updateSettings } = useStore();
 
   const Toggle = ({ label, icon: Icon, value, onChange }: any) => (
-    <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+    <div className={`flex items-center justify-between p-4 rounded-2xl border ${settings.darkroomMode ? 'bg-red-950/10 border-red-900/30' : 'bg-white/5 border-white/5'}`}>
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center">
+        <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${settings.darkroomMode ? 'bg-red-900/50' : 'bg-white/5'}`}>
           <Icon size={20} className="opacity-70" />
         </div>
         <span className="font-medium">{label}</span>
       </div>
       <button 
         onClick={() => onChange(!value)}
-        className={`w-12 h-6 rounded-full transition-colors relative ${value ? 'bg-white' : 'bg-white/10'}`}
+        className={`w-12 h-6 rounded-full transition-colors relative ${value ? (settings.darkroomMode ? 'bg-red-500' : 'bg-white') : (settings.darkroomMode ? 'bg-red-900/30' : 'bg-white/10')}`}
       >
-        <div className={`absolute top-1 w-4 h-4 rounded-full transition-all ${value ? 'right-1 bg-black' : 'left-1 bg-white/40'}`} />
+        <div className={`absolute top-1 w-4 h-4 rounded-full transition-all ${value ? `right-1 ${settings.darkroomMode ? 'bg-black' : 'bg-black'}` : `left-1 ${settings.darkroomMode ? 'bg-red-500/40' : 'bg-white/40'}`}`} />
       </button>
     </div>
   );
@@ -36,23 +36,23 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
         <section className="space-y-3">
           <h2 className="text-xs font-bold uppercase tracking-widest opacity-50 px-2">Preferences</h2>
           <div className="space-y-2">
-            <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+            <div className={`flex items-center justify-between p-4 rounded-2xl border ${settings.darkroomMode ? 'bg-red-950/10 border-red-900/30' : 'bg-white/5 border-white/5'}`}>
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center">
+                <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${settings.darkroomMode ? 'bg-red-900/50' : 'bg-white/5'}`}>
                   <span className="font-bold text-lg">°</span>
                 </div>
                 <span className="font-medium">Temperature Unit</span>
               </div>
-              <div className="flex bg-white/10 p-1 rounded-xl">
+              <div className={`flex p-1 rounded-xl ${settings.darkroomMode ? 'bg-red-900/30' : 'bg-white/10'}`}>
                 <button 
                   onClick={() => updateSettings({ unit: 'C' })}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${settings.unit === 'C' ? 'bg-white text-black' : 'opacity-50'}`}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${settings.unit === 'C' ? (settings.darkroomMode ? 'bg-red-500 text-black' : 'bg-white text-black') : 'opacity-50'}`}
                 >
                   CELSIUS
                 </button>
                 <button 
                   onClick={() => updateSettings({ unit: 'F' })}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${settings.unit === 'F' ? 'bg-white text-black' : 'opacity-50'}`}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${settings.unit === 'F' ? (settings.darkroomMode ? 'bg-red-500 text-black' : 'bg-white text-black') : 'opacity-50'}`}
                 >
                   FAHRENHEIT
                 </button>

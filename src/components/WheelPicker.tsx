@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { cn } from './Layout';
+import { useStore } from '../store/useStore';
 
 interface WheelPickerProps {
   value: number;
@@ -15,6 +16,7 @@ export const WheelPicker: React.FC<WheelPickerProps> = ({ value, min, max, onCha
   const [isInitialized, setIsInitialized] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  const { settings } = useStore();
   
   const baseOptions = Array.from({ length: max - min + 1 }, (_, i) => min + i);
   // For circular scrolling, we repeat the options to simulate infinity
@@ -78,7 +80,7 @@ export const WheelPicker: React.FC<WheelPickerProps> = ({ value, min, max, onCha
       <div className="relative h-[120px] w-16 overflow-hidden">
         {/* Selection Highlight */}
         <div 
-          className="absolute top-1/2 left-0 right-0 h-10 -translate-y-1/2 border-y border-white/20 z-20 bg-white/5 cursor-text"
+          className={`absolute top-1/2 left-0 right-0 h-10 -translate-y-1/2 border-y z-20 cursor-text ${settings.darkroomMode ? 'border-red-900/50 bg-red-950/20' : 'border-white/20 bg-white/5'}`}
           onClick={() => {
             setIsTyping(true);
             setInputValue(value.toString().padStart(2, '0'));
@@ -86,7 +88,7 @@ export const WheelPicker: React.FC<WheelPickerProps> = ({ value, min, max, onCha
         />
         
         {isTyping ? (
-          <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/80">
+          <div className={`absolute inset-0 z-30 flex items-center justify-center ${settings.darkroomMode ? 'bg-black/90' : 'bg-black/80'}`}>
             <input
               autoFocus
               type="number"
@@ -94,7 +96,7 @@ export const WheelPicker: React.FC<WheelPickerProps> = ({ value, min, max, onCha
               onChange={(e) => setInputValue(e.target.value)}
               onBlur={handleInputSubmit}
               onKeyDown={(e) => e.key === 'Enter' && handleInputSubmit()}
-              className="w-full h-10 bg-transparent text-center text-lg font-bold text-white focus:outline-none"
+              className={`w-full h-10 bg-transparent text-center text-lg font-bold focus:outline-none ${settings.darkroomMode ? 'text-red-500' : 'text-white'}`}
             />
           </div>
         ) : (
