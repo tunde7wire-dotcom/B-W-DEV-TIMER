@@ -254,70 +254,76 @@ export default function App() {
       />
 
       {/* Left Safelight */}
-      <motion.div
-        className="absolute inset-0 z-40 pointer-events-none"
-        initial={{ opacity: 0 }}
-        animate={
-          transitionStage >= 4 ? {
-            opacity: [0, 0.14, 0.05, 0.22, 0.10, 0.25, 0.18],
-          } : { opacity: 0 }
-        }
-        transition={
-          transitionStage >= 4 ? {
-            duration: 3.0,
-            times: [0, 0.15, 0.3, 0.45, 0.6, 0.8, 1],
-            ease: "easeInOut"
-          } : { duration: 0 }
-        }
-        style={{
-          background: 'linear-gradient(135deg, #FF5A36 0%, #E63B2E 40%, rgba(255,179,71,0.1) 70%, transparent 100%)',
-          mixBlendMode: 'screen'
-        }}
-      />
+      {!settings.darkroomMode && (
+        <motion.div
+          className="absolute inset-0 z-40 pointer-events-none"
+          initial={{ opacity: 0 }}
+          animate={
+            transitionStage >= 4 ? {
+              opacity: [0, 0.14, 0.05, 0.22, 0.10, 0.25, 0.18],
+            } : { opacity: 0 }
+          }
+          transition={
+            transitionStage >= 4 ? {
+              duration: 3.0,
+              times: [0, 0.15, 0.3, 0.45, 0.6, 0.8, 1],
+              ease: "easeInOut"
+            } : { duration: 0 }
+          }
+          style={{
+            background: 'linear-gradient(135deg, #FF5A36 0%, #E63B2E 40%, rgba(255,179,71,0.1) 70%, transparent 100%)',
+            mixBlendMode: 'screen'
+          }}
+        />
+      )}
 
       {/* Right Safelight */}
-      <motion.div
-        className="absolute inset-0 z-40 pointer-events-none"
-        initial={{ opacity: 0 }}
-        animate={
-          transitionStage >= 5 ? {
-            opacity: [0, 0.14, 0.05, 0.22, 0.10, 0.25, 0.18],
-          } : { opacity: 0 }
-        }
-        transition={
-          transitionStage >= 5 ? {
-            duration: 3.0,
-            times: [0, 0.15, 0.3, 0.45, 0.6, 0.8, 1],
-            ease: "easeInOut"
-          } : { duration: 0 }
-        }
-        style={{
-          background: 'linear-gradient(225deg, #FF5A36 0%, #E63B2E 40%, rgba(255,179,71,0.1) 70%, transparent 100%)',
-          mixBlendMode: 'screen'
-        }}
-      />
+      {!settings.darkroomMode && (
+        <motion.div
+          className="absolute inset-0 z-40 pointer-events-none"
+          initial={{ opacity: 0 }}
+          animate={
+            transitionStage >= 5 ? {
+              opacity: [0, 0.14, 0.05, 0.22, 0.10, 0.25, 0.18],
+            } : { opacity: 0 }
+          }
+          transition={
+            transitionStage >= 5 ? {
+              duration: 3.0,
+              times: [0, 0.15, 0.3, 0.45, 0.6, 0.8, 1],
+              ease: "easeInOut"
+            } : { duration: 0 }
+          }
+          style={{
+            background: 'linear-gradient(225deg, #FF5A36 0%, #E63B2E 40%, rgba(255,179,71,0.1) 70%, transparent 100%)',
+            mixBlendMode: 'screen'
+          }}
+        />
+      )}
 
       {/* Center Safelight */}
-      <motion.div
-        className="absolute inset-0 z-40 pointer-events-none"
-        initial={{ opacity: 0 }}
-        animate={
-          transitionStage >= 6 ? {
-            opacity: [0, 0.14, 0.05, 0.22, 0.10, 0.25, 0.18],
-          } : { opacity: 0 }
-        }
-        transition={
-          transitionStage >= 6 ? {
-            duration: 3.0,
-            times: [0, 0.15, 0.3, 0.45, 0.6, 0.8, 1],
-            ease: "easeInOut"
-          } : { duration: 0 }
-        }
-        style={{
-          background: 'radial-gradient(100% 100% at 50% 0%, #FF5A36 0%, #E63B2E 50%, rgba(255,179,71,0.15) 80%, transparent 100%)',
-          mixBlendMode: 'screen'
-        }}
-      />
+      {!settings.darkroomMode && (
+        <motion.div
+          className="absolute inset-0 z-40 pointer-events-none"
+          initial={{ opacity: 0 }}
+          animate={
+            transitionStage >= 6 ? {
+              opacity: [0, 0.14, 0.05, 0.22, 0.10, 0.25, 0.18],
+            } : { opacity: 0 }
+          }
+          transition={
+            transitionStage >= 6 ? {
+              duration: 3.0,
+              times: [0, 0.15, 0.3, 0.45, 0.6, 0.8, 1],
+              ease: "easeInOut"
+            } : { duration: 0 }
+          }
+          style={{
+            background: 'radial-gradient(100% 100% at 50% 0%, #FF5A36 0%, #E63B2E 50%, rgba(255,179,71,0.15) 80%, transparent 100%)',
+            mixBlendMode: 'screen'
+          }}
+        />
+      )}
     </div>
   );
 }
