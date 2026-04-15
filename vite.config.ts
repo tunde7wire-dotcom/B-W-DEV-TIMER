@@ -1,3 +1,15 @@
+/**
+ * DEPLOYMENT-CRITICAL CONFIG
+ *
+ * This app is deployed to GitHub Pages at:
+ * https://tunde7wire-dotcom.github.io/B-W-DEV-TIMER/
+ *
+ * The Vite base path MUST remain:
+ *   base: '/B-W-DEV-TIMER/'
+ *
+ * Do not remove or change this unless the deployment URL changes.
+ */
+
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
@@ -5,6 +17,7 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  base: '/B-W-DEV-TIMER/',
   plugins: [
     react(),
     tailwindcss(),
@@ -45,9 +58,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, '.'),
     },
   },
-    server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
-      hmr: process.env.DISABLE_HMR !== 'true',
+  server: {
+    // HMR is disabled in AI Studio via DISABLE_HMR env var.
+    // Do not modify—file watching is disabled to prevent flickering during agent edits.
+    hmr: process.env.DISABLE_HMR !== 'true',
   },
 });
