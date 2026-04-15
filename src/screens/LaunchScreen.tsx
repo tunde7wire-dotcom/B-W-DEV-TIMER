@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { motion, useMotionValue, useTransform, useSpring, useAnimation, PanInfo } from 'motion/react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, useMotionValue, useTransform, useSpring, useAnimation, PanInfo, useMotionValueEvent } from 'motion/react';
 import { Button } from '../components/Layout';
 
-const TankInteractiveWrapper: React.FC<{ children: React.ReactNode, isActive: boolean }> = ({ children, isActive }) => {
+const TankInteractiveWrapper: React.FC<{ children: React.ReactNode, isActive: boolean, isPouring?: boolean, onEasterEggTrigger?: () => void }> = ({ children, isActive, isPouring, onEasterEggTrigger }) => {
   const x = useMotionValue(0);
   
   // Primary tilt from drag - mapped to allow full inversion (-180 to 180 degrees)
@@ -14,8 +14,44 @@ const TankInteractiveWrapper: React.FC<{ children: React.ReactNode, isActive: bo
   const springSlosh = useSpring(sloshRotate, { stiffness: 100, damping: 10 });
 
   const controls = useAnimation();
+  const isUpsideDown = useRef(false);
+  const inversionCount = useRef(0);
+
+  useMotionValueEvent(rotate, "change", (latest) => {
+    if (!isActive || isPouring) return;
+
+    if (Math.abs(latest) > 140 && !isUpsideDown.current) {
+      isUpsideDown.current = true;
+    } else if (Math.abs(latest) < 40 && isUpsideDown.current) {
+      isUpsideDown.current = false;
+      inversionCount.current += 1;
+      
+      if (inversionCount.current >= 3) {
+        inversionCount.current = 0; // Reset
+        if (onEasterEggTrigger) onEasterEggTrigger();
+      }
+    }
+  });
+
+  useEffect(() => {
+    if (isPouring) {
+      x.set(0); // Clear drag state
+      controls.start({
+        rotate: 100,
+        y: -20,
+        transition: { duration: 0.5, ease: "easeInOut" }
+      });
+    } else {
+      controls.start({
+        rotate: 0,
+        y: 0,
+        transition: { duration: 0.5, ease: "easeInOut" }
+      });
+    }
+  }, [isPouring, controls, x]);
 
   const handleDragEnd = (event: any, info: PanInfo) => {
+    if (isPouring) return;
     if (Math.abs(info.velocity.x) > 200) {
       const direction = info.velocity.x > 0 ? 1 : -1;
       controls.start({
@@ -27,13 +63,13 @@ const TankInteractiveWrapper: React.FC<{ children: React.ReactNode, isActive: bo
 
   return (
     <motion.div
-      drag={isActive ? "x" : false}
+      drag={isActive && !isPouring ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.8} // Increased elasticity to allow further dragging
       onDragEnd={handleDragEnd}
-      style={{ x, rotate: springRotate, touchAction: isActive ? 'none' : 'auto' }}
-      whileTap={isActive ? { scale: 0.95, y: 5 } : {}}
-      className={`w-full h-full origin-center ${isActive ? 'cursor-grab active:cursor-grabbing' : ''}`}
+      style={{ x, rotate: springRotate, touchAction: isActive && !isPouring ? 'none' : 'auto' }}
+      whileTap={isActive && !isPouring ? { scale: 0.95, y: 5 } : {}}
+      className={`w-full h-full origin-center ${isActive && !isPouring ? 'cursor-grab active:cursor-grabbing' : ''}`}
     >
       <motion.div style={{ rotate: springSlosh }} className="w-full h-full origin-center">
         <motion.div animate={controls} className="w-full h-full origin-center">
@@ -47,6 +83,16 @@ const TankInteractiveWrapper: React.FC<{ children: React.ReactNode, isActive: bo
 export const LaunchScreen: React.FC<{ onStart: () => void, transitionStage?: number }> = ({ onStart, transitionStage = 0 }) => {
   const [showStart, setShowStart] = useState(false);
   const [isSkipped, setIsSkipped] = useState(false);
+  const [easterEggPouring, setEasterEggPouring] = useState(false);
+  const [easterEggKey, setEasterEggKey] = useState(0);
+
+  const handleEasterEgg = () => {
+    setEasterEggPouring(true);
+    setEasterEggKey(prev => prev + 1);
+    setTimeout(() => {
+      setEasterEggPouring(false);
+    }, 3000); // 3 seconds pour
+  };
 
   useEffect(() => {
     // Extended total sequence time to 14 seconds for a natural flow
@@ -198,7 +244,11 @@ export const LaunchScreen: React.FC<{ onStart: () => void, transitionStage?: num
 
       {/* Paterson Tank Container - Scaled up for better visibility */}
       <div className="absolute top-[55%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-[160px] h-[180px] scale-[1.7] origin-center">
-        <TankInteractiveWrapper isActive={showStart}>
+        <TankInteractiveWrapper 
+          isActive={showStart}
+          isPouring={easterEggPouring}
+          onEasterEggTrigger={handleEasterEgg}
+        >
           <motion.div
             animate={{
             rotate: [
@@ -361,6 +411,61 @@ export const LaunchScreen: React.FC<{ onStart: () => void, transitionStage?: num
               animate={{ cy: [220, 250], opacity: [0, 0.9, 0] }} transition={isSkipped ? { duration: 0 } : { duration: 0.4, repeat: 4, delay: 5.0 }} />
           </svg>
         </motion.div>
+
+        {/* Easter Egg Liquid Pouring Out */}
+        {easterEggPouring && (
+          <motion.div
+            key={`easter-egg-${easterEggKey}`}
+            className="absolute z-20 pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 1, 1, 0] }}
+            transition={{ duration: 2.5, delay: 0.5, times: [0, 0.1, 0.8, 1] }}
+            style={{ top: '135px', left: '130px' }}
+          >
+            <svg width="80" height="250" viewBox="0 0 80 250" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Main Stream */}
+              <motion.path 
+                d="M20 0 C40 20, 45 80, 35 150 C25 220, 20 250, 20 250 L10 250 C10 250, 15 220, 25 150 C35 80, 20 20, 10 0 Z" 
+                fill="#d97706" 
+                opacity="0.95"
+                animate={{
+                  d: [
+                    "M20 0 C20 0, 20 0, 20 0 C20 0, 20 0, 20 0 L10 0 C10 0, 10 0, 10 0 C10 0, 10 0, 10 0 Z",
+                    "M20 0 C40 20, 45 80, 35 150 C25 220, 20 250, 20 250 L10 250 C10 250, 15 220, 25 150 C35 80, 20 20, 10 0 Z",
+                    "M20 0 C30 20, 35 80, 25 150 C15 220, 20 250, 20 250 L15 250 C15 250, 10 220, 20 150 C30 80, 15 20, 10 0 Z",
+                    "M20 0 C40 20, 45 80, 35 150 C25 220, 20 250, 20 250 L10 250 C10 250, 15 220, 25 150 C35 80, 20 20, 10 0 Z",
+                    "M15 0 C15 20, 15 80, 15 150 C15 220, 15 250, 15 250 L15 250 C15 250, 15 220, 15 150 C15 80, 15 20, 15 0 Z",
+                  ]
+                }}
+                transition={{ duration: 2.5, delay: 0.5, ease: "easeInOut", times: [0, 0.15, 0.5, 0.85, 1] }}
+              />
+              {/* Inner Highlight Stream */}
+              <motion.path 
+                d="M22 0 C38 20, 42 80, 32 150 C22 220, 18 250, 18 250 L14 250 C14 250, 18 220, 28 150 C38 80, 22 20, 14 0 Z" 
+                fill="#f59e0b" 
+                opacity="0.8"
+                animate={{
+                  d: [
+                    "M22 0 C22 0, 22 0, 22 0 C22 0, 22 0, 22 0 L14 0 C14 0, 14 0, 14 0 C14 0, 14 0, 14 0 Z",
+                    "M22 0 C38 20, 42 80, 32 150 C22 220, 18 250, 18 250 L14 250 C14 250, 18 220, 28 150 C38 80, 22 20, 14 0 Z",
+                    "M22 0 C30 20, 34 80, 24 150 C14 220, 18 250, 18 250 L16 250 C16 250, 12 220, 22 150 C32 80, 18 20, 14 0 Z",
+                    "M22 0 C38 20, 42 80, 32 150 C22 220, 18 250, 18 250 L14 250 C14 250, 18 220, 28 150 C38 80, 22 20, 14 0 Z",
+                    "M15 0 C15 20, 15 80, 15 150 C15 220, 15 250, 15 250 L15 250 C15 250, 15 220, 15 150 C15 80, 15 20, 15 0 Z",
+                  ]
+                }}
+                transition={{ duration: 2.5, delay: 0.5, ease: "easeInOut", times: [0, 0.15, 0.5, 0.85, 1] }}
+              />
+              
+              {/* Splashes */}
+              <motion.circle cx="25" cy="230" r="3" fill="#f59e0b" opacity="0.9" 
+                animate={{ cy: [230, 250], opacity: [0, 0.9, 0] }} transition={{ duration: 0.3, repeat: 6, delay: 0.7 }} />
+              <motion.circle cx="15" cy="240" r="2" fill="#d97706" opacity="0.8" 
+                animate={{ cy: [240, 260], opacity: [0, 0.8, 0] }} transition={{ duration: 0.2, repeat: 8, delay: 0.8 }} />
+              <motion.circle cx="35" cy="220" r="2.5" fill="#f59e0b" opacity="0.9" 
+                animate={{ cy: [220, 250], opacity: [0, 0.9, 0] }} transition={{ duration: 0.4, repeat: 5, delay: 0.9 }} />
+            </svg>
+          </motion.div>
+        )}
 
         {/* Front Lip of Tank (for occlusion) */}
         <motion.div
