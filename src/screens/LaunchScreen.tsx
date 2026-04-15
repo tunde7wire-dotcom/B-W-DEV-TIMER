@@ -3,21 +3,18 @@ import { motion, useMotionValue, useTransform, useSpring, useAnimation, PanInfo,
 import { Button } from '../components/Layout';
 
 const TankInteractiveWrapper: React.FC<{ children: React.ReactNode, isActive: boolean, isPouring?: boolean, onEasterEggTrigger?: () => void }> = ({ children, isActive, isPouring, onEasterEggTrigger }) => {
-  const x = useMotionValue(0);
-  
-  // Primary tilt from drag - mapped to allow full inversion (-180 to 180 degrees)
-  const rotate = useTransform(x, [-150, 150], [-180, 180]);
-  const springRotate = useSpring(rotate, { stiffness: 200, damping: 20 });
+  const rotateTarget = useMotionValue(0);
+  const springRotate = useSpring(rotateTarget, { stiffness: 150, damping: 15, mass: 1 });
   
   // Secondary delayed tilt (slosh)
-  const sloshRotate = useTransform(x, [-150, 150], [15, -15]);
-  const springSlosh = useSpring(sloshRotate, { stiffness: 100, damping: 10 });
+  const sloshTarget = useTransform(rotateTarget, [-180, -45, 0, 45, 180], [15, 5, 0, -5, -15]);
+  const springSlosh = useSpring(sloshTarget, { stiffness: 80, damping: 12 });
 
   const controls = useAnimation();
   const isUpsideDown = useRef(false);
   const inversionCount = useRef(0);
 
-  useMotionValueEvent(rotate, "change", (latest) => {
+  useMotionValueEvent(springRotate, "change", (latest) => {
     if (!isActive || isPouring) return;
 
     if (Math.abs(latest) > 140 && !isUpsideDown.current) {
@@ -35,7 +32,7 @@ const TankInteractiveWrapper: React.FC<{ children: React.ReactNode, isActive: bo
 
   useEffect(() => {
     if (isPouring) {
-      x.set(0); // Clear drag state
+      rotateTarget.set(0); 
       controls.start({
         rotate: 100,
         y: -20,
@@ -48,27 +45,80 @@ const TankInteractiveWrapper: React.FC<{ children: React.ReactNode, isActive: bo
         transition: { duration: 0.5, ease: "easeInOut" }
       });
     }
-  }, [isPouring, controls, x]);
+  }, [isPouring, controls, rotateTarget]);
 
-  const handleDragEnd = (event: any, info: PanInfo) => {
-    if (isPouring) return;
-    if (Math.abs(info.velocity.x) > 200) {
-      const direction = info.velocity.x > 0 ? 1 : -1;
-      controls.start({
-        rotate: [0, direction * 15, -direction * 10, direction * 5, 0],
-        transition: { duration: 0.8, ease: "easeInOut" }
-      });
+  const activePointers = useRef(new Map<number, { x: number, y: number }>());
+  const initialOneFingerX = useRef(0);
+  const initialRotation = useRef(0);
+  const initialTwoFingerAngle = useRef(0);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (!isActive || isPouring) return;
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    
+    // Sync target to current visual position to catch it mid-spring
+    rotateTarget.set(springRotate.get());
+
+    if (activePointers.current.size === 1) {
+      initialOneFingerX.current = e.clientX;
+      initialRotation.current = rotateTarget.get();
+    } else if (activePointers.current.size === 2) {
+      const pts = Array.from(activePointers.current.values());
+      initialTwoFingerAngle.current = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x);
+      initialRotation.current = rotateTarget.get();
+    }
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isActive || isPouring) return;
+    if (!activePointers.current.has(e.pointerId)) return;
+    
+    activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    
+    if (activePointers.current.size === 1) {
+      const deltaX = e.clientX - initialOneFingerX.current;
+      // 200px drag = 35 degrees
+      let targetRot = initialRotation.current + (deltaX / 200) * 35;
+      // Limit one-finger tilt to a modest angle
+      targetRot = Math.max(-40, Math.min(40, targetRot));
+      rotateTarget.set(targetRot);
+    } else if (activePointers.current.size === 2) {
+      const pts = Array.from(activePointers.current.values());
+      const currentAngle = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x);
+      
+      let deltaAngle = currentAngle - initialTwoFingerAngle.current;
+      
+      // Handle wrap-around
+      if (deltaAngle > Math.PI) deltaAngle -= 2 * Math.PI;
+      if (deltaAngle < -Math.PI) deltaAngle += 2 * Math.PI;
+      
+      let targetRot = initialRotation.current + deltaAngle * (180 / Math.PI);
+      rotateTarget.set(targetRot);
+    }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (!isActive || isPouring) return;
+    activePointers.current.delete(e.pointerId);
+    
+    if (activePointers.current.size === 1) {
+      const pts = Array.from(activePointers.current.values());
+      initialOneFingerX.current = pts[0].x;
+      initialRotation.current = rotateTarget.get();
+    } else if (activePointers.current.size === 0) {
+      rotateTarget.set(0);
     }
   };
 
   return (
     <motion.div
-      drag={isActive && !isPouring ? "x" : false}
-      dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.8} // Increased elasticity to allow further dragging
-      onDragEnd={handleDragEnd}
-      style={{ x, rotate: springRotate, touchAction: isActive && !isPouring ? 'none' : 'auto' }}
-      whileTap={isActive && !isPouring ? { scale: 0.95, y: 5 } : {}}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      style={{ rotate: springRotate, touchAction: isActive && !isPouring ? 'none' : 'auto' }}
+      whileTap={isActive && !isPouring ? { scale: 0.98 } : {}}
       className={`w-full h-full origin-center ${isActive && !isPouring ? 'cursor-grab active:cursor-grabbing' : ''}`}
     >
       <motion.div style={{ rotate: springSlosh }} className="w-full h-full origin-center">
