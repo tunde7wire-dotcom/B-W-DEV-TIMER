@@ -63,6 +63,7 @@ export default function App() {
   };
 
   const handleStartTransition = () => {
+    unlockAudio();
     setTransitionStage(1);
     
     setTimeout(() => setTransitionStage(2), 800);

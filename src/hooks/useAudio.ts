@@ -1,20 +1,21 @@
 import { useCallback, useRef } from 'react';
 import { useStore } from '../store/useStore';
 
+let globalAudioCtx: AudioContext | null = null;
+
 export const useAudio = () => {
   const { settings } = useStore();
-  const audioCtxRef = useRef<AudioContext | null>(null);
 
-  const playBeep = useCallback(async (frequency = 440, duration = 0.2) => {
+  const playBeep = useCallback((frequency = 440, duration = 0.2) => {
     if (!settings.soundEnabled) return;
     
-    if (!audioCtxRef.current) {
-      audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    if (!globalAudioCtx) {
+      globalAudioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     }
     
-    const ctx = audioCtxRef.current;
+    const ctx = globalAudioCtx;
     if (ctx.state === 'suspended') {
-      await ctx.resume();
+      ctx.resume();
     }
     
     const osc = ctx.createOscillator();
@@ -36,6 +37,9 @@ export const useAudio = () => {
   const speak = useCallback((text: string) => {
     if (!settings.voiceEnabled) return;
     
+    // On iOS, we sometimes need to cancel any pending utterances before speaking
+    window.speechSynthesis.cancel();
+    
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 0.9; // Slightly slower for "calm" effect
     utterance.pitch = 1.0;
@@ -54,13 +58,22 @@ export const useAudio = () => {
     window.speechSynthesis.speak(utterance);
   }, [settings.voiceEnabled]);
 
-  const unlockAudio = useCallback(async () => {
-    if (!audioCtxRef.current) {
-      audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+  const unlockAudio = useCallback(() => {
+    // 1. Unlock Speech Synthesis synchronously
+    if (window.speechSynthesis) {
+      const silent = new SpeechSynthesisUtterance(" ");
+      silent.volume = 0;
+      window.speechSynthesis.speak(silent);
     }
-    const ctx = audioCtxRef.current;
+
+    // 2. Unlock Web Audio API
+    if (!globalAudioCtx) {
+      globalAudioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    const ctx = globalAudioCtx;
+    
     if (ctx.state === 'suspended') {
-      await ctx.resume();
+      ctx.resume();
     }
     
     // Play a silent buffer to fully unlock iOS audio
@@ -69,12 +82,6 @@ export const useAudio = () => {
     source.buffer = buffer;
     source.connect(ctx.destination);
     source.start(0);
-
-    // Also trigger a silent speech utterance to unlock speech synthesis
-    if (window.speechSynthesis) {
-      const silent = new SpeechSynthesisUtterance("");
-      window.speechSynthesis.speak(silent);
-    }
   }, []);
 
   return { playBeep, speak, unlockAudio };
