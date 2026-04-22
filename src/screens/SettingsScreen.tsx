@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Layout, Card } from '../components/Layout';
 import { useStore } from '../store/useStore';
 import { ChevronLeft, Volume2, VolumeX, Moon, Sun, Smartphone, Bell, Play, Check } from 'lucide-react';
@@ -10,7 +10,25 @@ interface SettingsScreenProps {
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
   const { settings, updateSettings } = useStore();
-  const { speak } = useAudio();
+  const { speak, resolveVoiceName } = useAudio();
+  const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    // Voices load asynchronously, so we may need to wait or listen to onvoiceschanged
+    const loadVoices = () => {
+      setResolvedNames({
+        'female-1': resolveVoiceName('female-1') || 'Default US Female',
+        'female-2': resolveVoiceName('female-2') || 'Default UK Female',
+        'male-1': resolveVoiceName('male-1') || 'Default US Male',
+        'male-2': resolveVoiceName('male-2') || 'Default UK Male',
+      });
+    };
+
+    loadVoices();
+    if (window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }, [resolveVoiceName]);
 
   const previewVoice = (e: React.MouseEvent, profileId: string) => {
     e.stopPropagation();
@@ -18,10 +36,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
   };
 
   const voicesOptions = [
-    { id: 'female-1', label: 'Female 1 (Natural US)', desc: 'Smooth, standard US English female voice' },
-    { id: 'female-2', label: 'Female 2 (Natural UK)', desc: 'Elegant UK English female voice' },
-    { id: 'male-1', label: 'Male 1 (Natural US)', desc: 'Clear, standard US English male voice' },
-    { id: 'male-2', label: 'Male 2 (Natural UK)', desc: 'Refined UK English male voice' },
+    { id: 'female-1', label: 'Female 1', desc: `Assigned Voice: ${resolvedNames['female-1'] || 'Loading...'}` },
+    { id: 'female-2', label: 'Female 2', desc: `Assigned Voice: ${resolvedNames['female-2'] || 'Loading...'}` },
+    { id: 'male-1', label: 'Male 1', desc: `Assigned Voice: ${resolvedNames['male-1'] || 'Loading...'}` },
+    { id: 'male-2', label: 'Male 2', desc: `Assigned Voice: ${resolvedNames['male-2'] || 'Loading...'}` },
   ];
 
   const Toggle = ({ label, icon: Icon, value, onChange }: any) => (

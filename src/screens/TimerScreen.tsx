@@ -77,6 +77,13 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
     setStartHoldProgress(0);
   };
 
+  useEffect(() => {
+    return () => {
+      if (startTimerRef.current) clearInterval(startTimerRef.current);
+      if (lockTimerRef.current) clearInterval(lockTimerRef.current);
+    };
+  }, []);
+
   // Handle alerts
   useEffect(() => {
     if (state.timeLeft === 10) {
@@ -272,20 +279,35 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
              <Button 
                variant="primary" 
                size="xl" 
-               className="h-20 sm:h-24 flex-[2] rounded-full shadow-2xl relative overflow-hidden"
-               onMouseDown={startHoldStart}
-               onMouseUp={startHoldStop}
-               onMouseLeave={startHoldStop}
-               onTouchStart={(e) => { e.preventDefault(); startHoldStart(); }}
-               onTouchEnd={(e) => { e.preventDefault(); startHoldStop(); }}
+               className="h-20 sm:h-24 flex-[2] rounded-full shadow-2xl relative overflow-hidden select-none"
+               style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none', touchAction: 'none' }}
+               onPointerDown={(e) => { e.preventDefault(); startHoldStart(); }}
+               onPointerUp={(e) => { e.preventDefault(); startHoldStop(); }}
+               onPointerLeave={(e) => { e.preventDefault(); startHoldStop(); }}
+               onPointerCancel={(e) => { e.preventDefault(); startHoldStop(); }}
                onContextMenu={(e) => e.preventDefault()}
                disabled={isLocked}
              >
                 <div 
-                  className={`absolute top-0 left-0 bottom-0 transition-none ${settings.darkroomMode ? 'bg-red-800' : 'bg-white/20'}`} 
+                  className="absolute top-0 bottom-0 left-0 pointer-events-none transition-none" 
                   style={{ width: `${startHoldProgress}%` }}
-                />
-                <span className="relative z-10 flex items-center justify-center gap-2 text-lg sm:text-xl font-bold uppercase tracking-wider">
+                >
+                  {/* Base orange liquid fill */}
+                  <div className="absolute inset-0 bg-[#d97706]" />
+                  {/* Sloshing wave right edge */}
+                  {startHoldProgress > 0 && startHoldProgress < 100 && (
+                    <motion.div 
+                      className="absolute left-full top-0 w-3 sm:w-4 h-[200%] text-[#d97706]"
+                      animate={{ y: ['0%', '-50%'] }}
+                      transition={{ ease: 'linear', duration: 0.6, repeat: Infinity }}
+                    >
+                      <svg viewBox="0 0 10 200" preserveAspectRatio="none" className="w-full h-full fill-current">
+                        <path d="M 0 0 Q 10 12.5 5 25 T 5 50 T 5 75 T 5 100 T 5 125 T 5 150 T 5 175 T 5 200 L 0 200 L 0 0 Z" />
+                      </svg>
+                    </motion.div>
+                  )}
+                </div>
+                <span className="relative z-10 flex items-center justify-center gap-2 text-lg sm:text-xl font-bold uppercase tracking-wider mix-blend-difference text-white">
                    Hold to Start
                 </span>
              </Button>
@@ -322,19 +344,19 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
             variant="ghost" 
             size="sm" 
             className="opacity-50"
-            onClick={() => extendTime(30)}
+            onClick={() => extendTime(10)}
             disabled={isLocked}
           >
-            <Plus size={16} /> 30s
+            <Plus size={16} /> 10s
           </Button>
           <Button 
             variant="ghost" 
             size="sm" 
             className="opacity-50"
-            onClick={() => extendTime(60)}
+            onClick={() => extendTime(30)}
             disabled={isLocked}
           >
-            <Plus size={16} /> 1m
+            <Plus size={16} /> 30s
           </Button>
         </div>
       </footer>

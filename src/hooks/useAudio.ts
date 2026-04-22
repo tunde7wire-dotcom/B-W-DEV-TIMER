@@ -123,5 +123,46 @@ export const useAudio = () => {
     source.start(0);
   }, []);
 
-  return { playBeep, speak, unlockAudio };
+  const resolveVoiceName = useCallback((profile: string) => {
+    if (!window.speechSynthesis) return null;
+    const voices = window.speechSynthesis.getVoices();
+    if (!voices.length) return null;
+
+    const findVoice = (keywords: string[], fallbackLang: string, fallbackIndex: number = 0) => {
+      const matches: SpeechSynthesisVoice[] = [];
+      for (const keyword of keywords) {
+        matches.push(...voices.filter(v => v.name.toLowerCase().includes(keyword.toLowerCase())));
+      }
+      if (matches.length > 0) {
+        const premium = matches.find(v => v.name.toLowerCase().includes('premium') || v.name.toLowerCase().includes('enhanced'));
+        return premium || matches[0];
+      }
+      const langMatches = voices.filter(v => v.lang.includes(fallbackLang));
+      if (langMatches.length > 0) {
+        const premiumLang = langMatches.find(v => v.name.toLowerCase().includes('premium') || v.name.toLowerCase().includes('enhanced'));
+        if (premiumLang) return premiumLang;
+        return langMatches[fallbackIndex % langMatches.length] || langMatches[0];
+      }
+      return undefined;
+    };
+
+    let selectedVoice: SpeechSynthesisVoice | undefined;
+    switch (profile) {
+      case 'female-1':
+        selectedVoice = findVoice(['samantha', 'victoria', 'zira', 'jenny', 'aria', 'susan', 'allison', 'female', 'google us english'], 'en-US', 0);
+        break;
+      case 'female-2':
+        selectedVoice = findVoice(['serena', 'kate', 'hazel', 'libby', 'mia', 'google uk english female', 'uk english female'], 'en-GB', 0);
+        break;
+      case 'male-1':
+        selectedVoice = findVoice(['alex', 'aaron', 'fred', 'david', 'guy', 'christopher', 'eric', 'male', 'google us english male'], 'en-US', 1);
+        break;
+      case 'male-2':
+        selectedVoice = findVoice(['daniel', 'oliver', 'arthur', 'george', 'ryan', 'google uk english male', 'uk english male'], 'en-GB', 1);
+        break;
+    }
+    return selectedVoice ? selectedVoice.name : null;
+  }, []);
+
+  return { playBeep, speak, unlockAudio, resolveVoiceName };
 };
