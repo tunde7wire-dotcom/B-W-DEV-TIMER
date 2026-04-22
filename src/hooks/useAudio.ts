@@ -49,7 +49,7 @@ export const useAudio = () => {
     
     let selectedVoice: SpeechSynthesisVoice | undefined;
 
-    const findVoice = (keywords: string[], fallbackLang: string) => {
+    const findVoice = (keywords: string[], fallbackLang: string, fallbackIndex: number = 0) => {
       // Collect all matches
       const matches: SpeechSynthesisVoice[] = [];
       for (const keyword of keywords) {
@@ -66,7 +66,10 @@ export const useAudio = () => {
       const langMatches = voices.filter(v => v.lang.includes(fallbackLang));
       if (langMatches.length > 0) {
         const premiumLang = langMatches.find(v => v.name.toLowerCase().includes('premium') || v.name.toLowerCase().includes('enhanced'));
-        return premiumLang || langMatches[0];
+        if (premiumLang) return premiumLang;
+        // If we fall back to generic lang matches, try to use the requested index to pick a different voice
+        // (e.g. so Male 1 and Female 1 don't both pick index 0 when no keywords match)
+        return langMatches[fallbackIndex % langMatches.length] || langMatches[0];
       }
       
       return undefined;
@@ -74,16 +77,16 @@ export const useAudio = () => {
 
     switch (profile) {
       case 'female-1':
-        selectedVoice = findVoice(['samantha', 'victoria', 'female', 'google us english'], 'en-US');
+        selectedVoice = findVoice(['samantha', 'victoria', 'zira', 'jenny', 'aria', 'susan', 'allison', 'female', 'google us english'], 'en-US', 0);
         break;
       case 'female-2':
-        selectedVoice = findVoice(['serena', 'moira', 'google uk english female'], 'en-GB');
+        selectedVoice = findVoice(['serena', 'kate', 'hazel', 'libby', 'mia', 'google uk english female', 'uk english female'], 'en-GB', 0);
         break;
       case 'male-1':
-        selectedVoice = findVoice(['alex', 'aaron', 'google us english male', 'male'], 'en-US');
+        selectedVoice = findVoice(['alex', 'aaron', 'fred', 'david', 'guy', 'christopher', 'eric', 'male', 'google us english male'], 'en-US', 1);
         break;
       case 'male-2':
-        selectedVoice = findVoice(['daniel', 'arthur', 'google uk english male'], 'en-GB');
+        selectedVoice = findVoice(['daniel', 'oliver', 'arthur', 'george', 'ryan', 'google uk english male', 'uk english male'], 'en-GB', 1);
         break;
     }
 
