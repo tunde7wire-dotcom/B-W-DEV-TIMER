@@ -1,7 +1,8 @@
 import React from 'react';
 import { Layout, Card } from '../components/Layout';
 import { useStore } from '../store/useStore';
-import { ChevronLeft, Volume2, VolumeX, Moon, Sun, Smartphone, Bell } from 'lucide-react';
+import { ChevronLeft, Volume2, VolumeX, Moon, Sun, Smartphone, Bell, Play, Check } from 'lucide-react';
+import { useAudio } from '../hooks/useAudio';
 
 interface SettingsScreenProps {
   onBack: () => void;
@@ -9,6 +10,19 @@ interface SettingsScreenProps {
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
   const { settings, updateSettings } = useStore();
+  const { speak } = useAudio();
+
+  const previewVoice = (e: React.MouseEvent, profileId: string) => {
+    e.stopPropagation();
+    speak("Hi there! I'm your film developer guide! Here to give you audio cues along the way.", profileId);
+  };
+
+  const voicesOptions = [
+    { id: 'female-1', label: 'Female 1 (Natural US)', desc: 'Smooth, standard US English female voice' },
+    { id: 'female-2', label: 'Female 2 (Natural UK)', desc: 'Elegant UK English female voice' },
+    { id: 'male-1', label: 'Male 1 (Natural US)', desc: 'Clear, standard US English male voice' },
+    { id: 'male-2', label: 'Male 2 (Natural UK)', desc: 'Refined UK English male voice' },
+  ];
 
   const Toggle = ({ label, icon: Icon, value, onChange }: any) => (
     <div className={`flex items-center justify-between p-4 rounded-2xl border ${settings.darkroomMode ? 'bg-red-950/10 border-red-900/30' : 'bg-white/5 border-white/5'}`}>
@@ -89,6 +103,36 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
               value={settings.voiceEnabled} 
               onChange={(v: boolean) => updateSettings({ voiceEnabled: v })} 
             />
+
+            {settings.voiceEnabled && (
+              <div className="mt-4 space-y-2">
+                <h3 className="text-xs font-bold uppercase tracking-widest opacity-50 px-2 mt-4 mb-2">Voice Style</h3>
+                {voicesOptions.map((v) => (
+                  <div 
+                    key={v.id}
+                    onClick={() => updateSettings({ voiceProfile: v.id })}
+                    className={`flex flex-col p-4 rounded-2xl border transition-colors cursor-pointer ${settings.voiceProfile === v.id ? (settings.darkroomMode ? 'bg-red-950/30 border-red-500' : 'bg-white/10 border-white') : (settings.darkroomMode ? 'bg-red-950/10 border-red-900/30' : 'bg-white/5 border-white/5')}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`h-8 w-8 rounded-full flex items-center justify-center ${settings.voiceProfile === v.id ? (settings.darkroomMode ? 'bg-red-500 text-black' : 'bg-white text-black') : (settings.darkroomMode ? 'bg-red-900/50' : 'bg-white/10')}`}>
+                          {settings.voiceProfile === v.id ? <Check size={16} /> : <div className="w-2 h-2 rounded-full bg-current opacity-50" />}
+                        </div>
+                        <span className="font-medium">{v.label}</span>
+                      </div>
+                      <button 
+                        onClick={(e) => previewVoice(e, v.id)}
+                        className={`p-2 rounded-full ${settings.darkroomMode ? 'bg-red-900/30 hover:bg-red-900/50 text-red-100' : 'bg-white/10 hover:bg-white/20 text-white'}`}
+                        aria-label="Preview Voice"
+                      >
+                        <Play size={16} fill="currentColor" />
+                      </button>
+                    </div>
+                    <p className={`text-xs mt-2 pl-11 opacity-50`}>{v.desc}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 

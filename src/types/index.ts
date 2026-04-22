@@ -51,4 +51,5 @@ export interface Settings {
   voiceEnabled: boolean;
   keepScreenAwake: boolean;
   darkroomMode: boolean;
+  voiceProfile?: string;
 }

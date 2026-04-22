@@ -34,8 +34,8 @@ export const useAudio = () => {
     osc.stop(ctx.currentTime + duration);
   }, [settings.soundEnabled]);
 
-  const speak = useCallback((text: string) => {
-    if (!settings.voiceEnabled) return;
+  const speak = useCallback((text: string, forceProfile?: string) => {
+    if (!settings.voiceEnabled && !forceProfile) return;
     
     // On iOS, we sometimes need to cancel any pending utterances before speaking
     window.speechSynthesis.cancel();
@@ -44,19 +44,55 @@ export const useAudio = () => {
     utterance.rate = 0.9; // Slightly slower for "calm" effect
     utterance.pitch = 1.0;
     
-    // Try to find a British female voice
     const voices = window.speechSynthesis.getVoices();
-    const britishFemaleVoice = voices.find(v => 
-      (v.lang.includes('en-GB') || v.lang.includes('en_GB')) && 
-      (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('serena') || v.name.toLowerCase().includes('google uk english female'))
-    ) || voices.find(v => v.lang.includes('en-GB'));
+    const profile = forceProfile || settings.voiceProfile || 'female-1';
+    
+    let selectedVoice: SpeechSynthesisVoice | undefined;
 
-    if (britishFemaleVoice) {
-      utterance.voice = britishFemaleVoice;
+    const findVoice = (keywords: string[], fallbackLang: string) => {
+      // Collect all matches
+      const matches: SpeechSynthesisVoice[] = [];
+      for (const keyword of keywords) {
+        matches.push(...voices.filter(v => v.name.toLowerCase().includes(keyword.toLowerCase())));
+      }
+      
+      if (matches.length > 0) {
+        // Prefer enhanced or premium voice if multiple matches exist
+        const premium = matches.find(v => v.name.toLowerCase().includes('premium') || v.name.toLowerCase().includes('enhanced'));
+        return premium || matches[0];
+      }
+      
+      // Fallback to exactly matching language, preferring premium if possible
+      const langMatches = voices.filter(v => v.lang.includes(fallbackLang));
+      if (langMatches.length > 0) {
+        const premiumLang = langMatches.find(v => v.name.toLowerCase().includes('premium') || v.name.toLowerCase().includes('enhanced'));
+        return premiumLang || langMatches[0];
+      }
+      
+      return undefined;
+    };
+
+    switch (profile) {
+      case 'female-1':
+        selectedVoice = findVoice(['samantha', 'victoria', 'female', 'google us english'], 'en-US');
+        break;
+      case 'female-2':
+        selectedVoice = findVoice(['serena', 'moira', 'google uk english female'], 'en-GB');
+        break;
+      case 'male-1':
+        selectedVoice = findVoice(['alex', 'aaron', 'google us english male', 'male'], 'en-US');
+        break;
+      case 'male-2':
+        selectedVoice = findVoice(['daniel', 'arthur', 'google uk english male'], 'en-GB');
+        break;
+    }
+
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
     }
 
     window.speechSynthesis.speak(utterance);
-  }, [settings.voiceEnabled]);
+  }, [settings.voiceEnabled, settings.voiceProfile]);
 
   const unlockAudio = useCallback(() => {
     // 1. Unlock Speech Synthesis synchronously

@@ -42,6 +42,7 @@ export const useStore = create<AppState>()(
         voiceEnabled: true,
         keepScreenAwake: true,
         darkroomMode: true,
+        voiceProfile: 'female-1',
       },
       lastRecipeId: null,
       activeTimer: null,
