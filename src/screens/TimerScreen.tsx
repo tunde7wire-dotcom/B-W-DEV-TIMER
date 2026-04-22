@@ -30,6 +30,9 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
   const [isLocked, setIsLocked] = React.useState(false);
   const [lockHoldProgress, setLockHoldProgress] = React.useState(0);
   const lockTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  const [startHoldProgress, setStartHoldProgress] = React.useState(0);
+  const startTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const startLockHold = () => {
     if (!isLocked) {
@@ -52,6 +55,26 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
   const stopLockHold = () => {
     if (lockTimerRef.current) clearInterval(lockTimerRef.current);
     setLockHoldProgress(0);
+  };
+
+  const startHoldStart = () => {
+    if (isLocked) return;
+    let progress = 0;
+    startTimerRef.current = setInterval(() => {
+      progress += 5;
+      setStartHoldProgress(progress);
+      if (progress >= 100) {
+        setStartHoldProgress(0);
+        if (startTimerRef.current) clearInterval(startTimerRef.current);
+        unlockAudio();
+        toggleTimer();
+      }
+    }, 40); // slightly faster (800ms) to feel snappier
+  };
+
+  const startHoldStop = () => {
+    if (startTimerRef.current) clearInterval(startTimerRef.current);
+    setStartHoldProgress(0);
   };
 
   // Handle alerts
@@ -106,6 +129,9 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
     ? ((state.agitationTotal - state.agitationTimeLeft) / state.agitationTotal) * 100 
     : 0;
 
+  const stepDuration = currentStep.id === 'developer' ? compensatedDevTime : currentStep.duration;
+  const isAtStartOfStep = !state.isRunning && state.timeLeft === stepDuration;
+
   return (
     <div 
       className={settings.darkroomMode ? "bg-black text-red-600 h-full flex flex-col" : "bg-[#151619] text-white h-full flex flex-col"}
@@ -121,7 +147,7 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
         </button>
         <div className="text-center">
           <p className="text-[10px] uppercase tracking-widest opacity-50">Step {state.currentStepIndex + 1} of {allSteps.length}</p>
-          <h2 className="text-sm font-bold uppercase tracking-tight">{recipe.name}</h2>
+          <h2 className="text-sm font-bold uppercase tracking-tight truncate max-w-[200px]">{recipe.name}</h2>
         </div>
         <div className="flex items-center gap-1">
           <button 
@@ -139,6 +165,7 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
             onMouseLeave={stopLockHold}
             onTouchStart={startLockHold}
             onTouchEnd={stopLockHold}
+            onContextMenu={(e) => e.preventDefault()}
             className="p-2 opacity-50 relative"
           >
             {isLocked ? (
@@ -166,26 +193,26 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
       </header>
 
       {/* Main Timer Area */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden">
         {/* Progress Ring Background */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-           <div className="w-[85%] aspect-square rounded-full relative">
+           <div className="w-[85%] max-w-[400px] aspect-square rounded-full relative">
               {/* Static Background Ring */}
-              <div className={`absolute inset-0 border-[16px] rounded-full ${settings.darkroomMode ? 'border-red-900/20' : 'border-white/5'}`} />
+              <div className={`absolute inset-0 border-[12px] sm:border-[16px] rounded-full ${settings.darkroomMode ? 'border-red-900/20' : 'border-white/5'}`} />
               
               {/* Agitation Progress Ring */}
               <svg className="absolute inset-0 w-full h-full -rotate-90">
                 <circle
                   cx="50%"
                   cy="50%"
-                  r="44%"
+                  r="46%"
                   fill="none"
                   stroke={settings.darkroomMode ? "#ef4444" : "#3b82f6"}
-                  strokeWidth="16"
+                  strokeWidth="12"
                   strokeDasharray="100 100"
                   strokeDashoffset={100 - agitationProgress}
                   pathLength="100"
-                  className="transition-all duration-1000 ease-linear"
+                  className="transition-all duration-1000 ease-linear sm:stroke-[16px]"
                   style={{ opacity: state.isAgitating ? 1 : 0 }}
                 />
               </svg>
@@ -198,17 +225,17 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.1 }}
-            className="text-center z-10"
+            className="text-center z-10 w-full px-4"
           >
-            <h1 className="text-4xl font-bold uppercase tracking-tighter mb-2">{currentStep.name}</h1>
-            <div className="text-[90px] font-mono font-bold leading-none tracking-tighter tabular-nums">
+            <h1 className="text-3xl sm:text-4xl font-bold uppercase tracking-tighter mb-2 truncate max-w-full">{currentStep.name}</h1>
+            <div className="text-7xl sm:text-[90px] font-mono font-bold leading-none tracking-tighter tabular-nums">
               {formatTime(state.timeLeft)}
             </div>
             {currentStep.notes && (
               <motion.p 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.6 }}
-                className="mt-4 text-sm max-w-[200px] mx-auto leading-relaxed italic"
+                className="mt-2 sm:mt-4 text-xs sm:text-sm max-w-[240px] mx-auto leading-relaxed italic"
               >
                 {currentStep.notes}
               </motion.p>
@@ -218,7 +245,7 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
       </div>
 
       {/* Controls */}
-      <footer className={`p-8 space-y-8 backdrop-blur-xl border-t ${settings.darkroomMode ? 'bg-red-950/20 border-red-900/30' : 'bg-black/20 border-white/5'}`}>
+      <footer className={`p-6 sm:p-8 space-y-6 sm:space-y-8 backdrop-blur-xl border-t ${settings.darkroomMode ? 'bg-red-950/20 border-red-900/30' : 'bg-black/20 border-white/5'}`}>
         {/* Progress Bar */}
         <div className={`h-1 w-full rounded-full overflow-hidden ${settings.darkroomMode ? 'bg-red-900/30' : 'bg-white/10'}`}>
           <motion.div 
@@ -229,38 +256,65 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
         </div>
 
         <div className="flex items-center justify-between gap-4">
-          <Button 
-            variant="secondary" 
-            size="md" 
-            className="flex-1 rounded-full"
-            onClick={prevStep}
-            disabled={isLocked || state.currentStepIndex === 0}
-          >
-            <SkipBack size={20} />
-          </Button>
+          {!isAtStartOfStep && (
+            <Button 
+              variant="secondary" 
+              size="md" 
+              className="flex-1 rounded-full h-16 sm:h-20"
+              onClick={prevStep}
+              disabled={isLocked || state.currentStepIndex === 0}
+            >
+              <SkipBack size={20} className="mx-auto" />
+            </Button>
+          )}
 
-          <Button 
-            variant="primary" 
-            size="xl" 
-            className="h-24 w-24 rounded-full shadow-2xl"
-            onClick={() => {
-              unlockAudio();
-              toggleTimer();
-            }}
-            disabled={isLocked}
-          >
-            {state.isRunning ? <Pause size={40} fill="currentColor" /> : <Play size={40} fill="currentColor" className="ml-1" />}
-          </Button>
+          {isAtStartOfStep ? (
+             <Button 
+               variant="primary" 
+               size="xl" 
+               className="h-20 sm:h-24 flex-[2] rounded-full shadow-2xl relative overflow-hidden"
+               onMouseDown={startHoldStart}
+               onMouseUp={startHoldStop}
+               onMouseLeave={startHoldStop}
+               onTouchStart={(e) => { e.preventDefault(); startHoldStart(); }}
+               onTouchEnd={(e) => { e.preventDefault(); startHoldStop(); }}
+               onContextMenu={(e) => e.preventDefault()}
+               disabled={isLocked}
+             >
+                <div 
+                  className={`absolute top-0 left-0 bottom-0 transition-none ${settings.darkroomMode ? 'bg-red-800' : 'bg-white/20'}`} 
+                  style={{ width: `${startHoldProgress}%` }}
+                />
+                <span className="relative z-10 flex items-center justify-center gap-2 text-lg sm:text-xl font-bold uppercase tracking-wider">
+                   Hold to Start
+                </span>
+             </Button>
+          ) : (
+            <Button 
+              variant="primary" 
+              size="xl" 
+              className="h-20 w-20 sm:h-24 sm:w-24 flex-shrink-0 rounded-full shadow-2xl"
+              onClick={() => {
+                unlockAudio();
+                toggleTimer();
+              }}
+              disabled={isLocked}
+            >
+              {state.isRunning ? <Pause size={36} fill="currentColor" className="mx-auto" /> : <Play size={36} fill="currentColor" className="mx-auto ml-1" />}
+            </Button>
+          )}
 
-          <Button 
-            variant="secondary" 
-            size="md" 
-            className="flex-1 rounded-full"
-            onClick={nextStep}
-            disabled={isLocked || state.currentStepIndex === allSteps.length - 1}
-          >
-            <SkipForward size={20} />
-          </Button>
+          {!isAtStartOfStep && (
+            <Button 
+              variant="secondary" 
+              size="md" 
+              className="flex-1 rounded-full h-16 sm:h-20"
+              onClick={nextStep}
+              disabled={isLocked || state.currentStepIndex === allSteps.length - 1}
+            >
+              <SkipForward size={20} className="mx-auto" />
+            </Button>
+          )}
         </div>
 
         <div className="flex items-center justify-center gap-4">
