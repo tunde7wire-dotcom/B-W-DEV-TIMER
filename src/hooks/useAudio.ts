@@ -50,26 +50,35 @@ export const useAudio = () => {
     let selectedVoice: SpeechSynthesisVoice | undefined;
 
     const findVoice = (keywords: string[], fallbackLang: string, fallbackIndex: number = 0) => {
-      // Collect all matches
+      // 1. Try to find by keywords
       const matches: SpeechSynthesisVoice[] = [];
       for (const keyword of keywords) {
         matches.push(...voices.filter(v => v.name.toLowerCase().includes(keyword.toLowerCase())));
       }
       
       if (matches.length > 0) {
-        // Prefer enhanced or premium voice if multiple matches exist
+        // If we have multiple keyword matches, pick the best one
         const premium = matches.find(v => v.name.toLowerCase().includes('premium') || v.name.toLowerCase().includes('enhanced'));
         return premium || matches[0];
       }
       
-      // Fallback to exactly matching language, preferring premium if possible
-      const langMatches = voices.filter(v => v.lang.includes(fallbackLang));
+      // 2. Fallback to language
+      const langMatches = voices.filter(v => 
+        v.lang.toLowerCase().replace('_', '-').startsWith(fallbackLang.toLowerCase().split('-')[0])
+      );
+      
       if (langMatches.length > 0) {
-        const premiumLang = langMatches.find(v => v.name.toLowerCase().includes('premium') || v.name.toLowerCase().includes('enhanced'));
-        if (premiumLang) return premiumLang;
-        // If we fall back to generic lang matches, try to use the requested index to pick a different voice
-        // (e.g. so Male 1 and Female 1 don't both pick index 0 when no keywords match)
-        return langMatches[fallbackIndex % langMatches.length] || langMatches[0];
+        // Sort premium/enhanced to the top so we use them if possible
+        const sorted = [...langMatches].sort((a, b) => {
+          const aP = a.name.toLowerCase().includes('premium') || a.name.toLowerCase().includes('enhanced');
+          const bP = b.name.toLowerCase().includes('premium') || b.name.toLowerCase().includes('enhanced');
+          if (aP && !bP) return -1;
+          if (!aP && bP) return 1;
+          return 0;
+        });
+        
+        // Use the index to pick a different voice from the sorted list
+        return sorted[fallbackIndex % sorted.length] || sorted[0];
       }
       
       return undefined;
@@ -80,13 +89,13 @@ export const useAudio = () => {
         selectedVoice = findVoice(['samantha', 'victoria', 'zira', 'jenny', 'aria', 'susan', 'allison', 'female', 'google us english'], 'en-US', 0);
         break;
       case 'female-2':
-        selectedVoice = findVoice(['serena', 'kate', 'hazel', 'libby', 'mia', 'google uk english female', 'uk english female'], 'en-GB', 0);
+        selectedVoice = findVoice(['serena', 'martha', 'fiona', 'hazel', 'libby', 'mia', 'google uk english female', 'uk english female'], 'en-GB', 0);
         break;
       case 'male-1':
-        selectedVoice = findVoice(['alex', 'aaron', 'fred', 'david', 'guy', 'christopher', 'eric', 'male', 'google us english male'], 'en-US', 1);
+        selectedVoice = findVoice(['alex', 'aaron', 'fred', 'david', 'guy', 'christopher', 'eric', 'male', 'google us english male'], 'en-US', 2); // skip 0/1 to be safe
         break;
       case 'male-2':
-        selectedVoice = findVoice(['daniel', 'oliver', 'arthur', 'george', 'ryan', 'google uk english male', 'uk english male'], 'en-GB', 1);
+        selectedVoice = findVoice(['daniel', 'arthur', 'george', 'ryan', 'google uk english male', 'uk english male'], 'en-GB', 2); // skip 0/1 to be safe
         break;
     }
 
@@ -137,11 +146,18 @@ export const useAudio = () => {
         const premium = matches.find(v => v.name.toLowerCase().includes('premium') || v.name.toLowerCase().includes('enhanced'));
         return premium || matches[0];
       }
-      const langMatches = voices.filter(v => v.lang.includes(fallbackLang));
+      const langMatches = voices.filter(v => 
+        v.lang.toLowerCase().replace('_', '-').startsWith(fallbackLang.toLowerCase().split('-')[0])
+      );
       if (langMatches.length > 0) {
-        const premiumLang = langMatches.find(v => v.name.toLowerCase().includes('premium') || v.name.toLowerCase().includes('enhanced'));
-        if (premiumLang) return premiumLang;
-        return langMatches[fallbackIndex % langMatches.length] || langMatches[0];
+        const sorted = [...langMatches].sort((a, b) => {
+          const aP = a.name.toLowerCase().includes('premium') || a.name.toLowerCase().includes('enhanced');
+          const bP = b.name.toLowerCase().includes('premium') || b.name.toLowerCase().includes('enhanced');
+          if (aP && !bP) return -1;
+          if (!aP && bP) return 1;
+          return 0;
+        });
+        return sorted[fallbackIndex % sorted.length] || sorted[0];
       }
       return undefined;
     };
@@ -152,13 +168,13 @@ export const useAudio = () => {
         selectedVoice = findVoice(['samantha', 'victoria', 'zira', 'jenny', 'aria', 'susan', 'allison', 'female', 'google us english'], 'en-US', 0);
         break;
       case 'female-2':
-        selectedVoice = findVoice(['serena', 'kate', 'hazel', 'libby', 'mia', 'google uk english female', 'uk english female'], 'en-GB', 0);
+        selectedVoice = findVoice(['serena', 'martha', 'fiona', 'hazel', 'libby', 'mia', 'google uk english female', 'uk english female'], 'en-GB', 0);
         break;
       case 'male-1':
-        selectedVoice = findVoice(['alex', 'aaron', 'fred', 'david', 'guy', 'christopher', 'eric', 'male', 'google us english male'], 'en-US', 1);
+        selectedVoice = findVoice(['alex', 'aaron', 'fred', 'david', 'guy', 'christopher', 'eric', 'male', 'google us english male'], 'en-US', 2);
         break;
       case 'male-2':
-        selectedVoice = findVoice(['daniel', 'oliver', 'arthur', 'george', 'ryan', 'google uk english male', 'uk english male'], 'en-GB', 1);
+        selectedVoice = findVoice(['daniel', 'arthur', 'george', 'ryan', 'google uk english male', 'uk english male'], 'en-GB', 2);
         break;
     }
     return selectedVoice ? selectedVoice.name : null;

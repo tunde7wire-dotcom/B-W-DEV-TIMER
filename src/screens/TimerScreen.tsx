@@ -57,24 +57,45 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
     setLockHoldProgress(0);
   };
 
-  const startHoldStart = () => {
+  const startHoldStart = (e: React.PointerEvent) => {
     if (isLocked) return;
+    if (startTimerRef.current) clearInterval(startTimerRef.current);
+    
+    // Capture pointer to ensure we get events even if finger moves outside
+    e.currentTarget.setPointerCapture(e.pointerId);
+    
     let progress = 0;
+    setStartHoldProgress(0);
+    
     startTimerRef.current = setInterval(() => {
-      progress += 5;
-      setStartHoldProgress(progress);
-      if (progress >= 100) {
-        setStartHoldProgress(0);
-        if (startTimerRef.current) clearInterval(startTimerRef.current);
-        unlockAudio();
-        toggleTimer();
-      }
-    }, 40); // slightly faster (800ms) to feel snappier
+      progress += 4;
+      setStartHoldProgress(prev => {
+        const next = Math.min(100, prev + 4);
+        if (next >= 100) {
+          if (startTimerRef.current) {
+             clearInterval(startTimerRef.current);
+             startTimerRef.current = null;
+          }
+          unlockAudio();
+          toggleTimer();
+          return 0; // Reset for next time
+        }
+        return next;
+      });
+    }, 30); // ~750ms hold
   };
 
-  const startHoldStop = () => {
-    if (startTimerRef.current) clearInterval(startTimerRef.current);
+  const startHoldStop = (e: React.PointerEvent) => {
+    if (startTimerRef.current) {
+      clearInterval(startTimerRef.current);
+      startTimerRef.current = null;
+    }
     setStartHoldProgress(0);
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch (err) {
+      // Ignore if pointer capture fails to release or already released
+    }
   };
 
   useEffect(() => {
@@ -281,10 +302,10 @@ export const TimerScreen: React.FC<TimerScreenProps> = ({ recipe, temp, pushPull
                size="xl" 
                className="h-20 sm:h-24 flex-[2] rounded-full shadow-2xl relative overflow-hidden select-none"
                style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none', touchAction: 'none' }}
-               onPointerDown={(e) => { e.preventDefault(); startHoldStart(); }}
-               onPointerUp={(e) => { e.preventDefault(); startHoldStop(); }}
-               onPointerLeave={(e) => { e.preventDefault(); startHoldStop(); }}
-               onPointerCancel={(e) => { e.preventDefault(); startHoldStop(); }}
+               onPointerDown={(e) => { e.preventDefault(); startHoldStart(e); }}
+               onPointerUp={(e) => { e.preventDefault(); startHoldStop(e); }}
+               onPointerLeave={(e) => { e.preventDefault(); startHoldStop(e); }}
+               onPointerCancel={(e) => { e.preventDefault(); startHoldStop(e); }}
                onContextMenu={(e) => e.preventDefault()}
                disabled={isLocked}
              >
