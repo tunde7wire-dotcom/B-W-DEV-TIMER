@@ -49,27 +49,35 @@ export const useAudio = () => {
     
     let selectedVoice: SpeechSynthesisVoice | undefined;
 
-    const findVoice = (keywords: string[], fallbackLang: string, fallbackIndex: number = 0) => {
-      // 1. Try to find by keywords
+    const findVoice = (genderKeywords: string[], secondaryKeywords: string[], fallbackLang: string, fallbackIndex: number = 0) => {
+      // 1. Try to find by specific name keywords + gender
+      const allKeywords = [...genderKeywords, ...secondaryKeywords];
       const matches: SpeechSynthesisVoice[] = [];
-      for (const keyword of keywords) {
+      for (const keyword of allKeywords) {
         matches.push(...voices.filter(v => v.name.toLowerCase().includes(keyword.toLowerCase())));
       }
       
       if (matches.length > 0) {
-        // If we have multiple keyword matches, pick the best one
+        // Prefer enhanced or premium voice
         const premium = matches.find(v => v.name.toLowerCase().includes('premium') || v.name.toLowerCase().includes('enhanced'));
-        return premium || matches[0];
+        // Try to find one that matches the gender keyword specifically in the name
+        const genderMatch = matches.find(v => genderKeywords.some(gk => v.name.toLowerCase().includes(gk.toLowerCase())));
+        return premium || genderMatch || matches[0];
       }
       
-      // 2. Fallback to language
+      // 2. Fallback to language + gender-ish check
       const langMatches = voices.filter(v => 
         v.lang.toLowerCase().replace('_', '-').startsWith(fallbackLang.toLowerCase().split('-')[0])
       );
       
       if (langMatches.length > 0) {
-        // Sort premium/enhanced to the top so we use them if possible
-        const sorted = [...langMatches].sort((a, b) => {
+        const withGender = langMatches.filter(v => 
+          genderKeywords.some(gk => v.name.toLowerCase().includes(gk.toLowerCase()))
+        );
+        const candidates = withGender.length > 0 ? withGender : langMatches;
+        
+        // Sort premium/enhanced to the top
+        const sorted = [...candidates].sort((a, b) => {
           const aP = a.name.toLowerCase().includes('premium') || a.name.toLowerCase().includes('enhanced');
           const bP = b.name.toLowerCase().includes('premium') || b.name.toLowerCase().includes('enhanced');
           if (aP && !bP) return -1;
@@ -77,7 +85,6 @@ export const useAudio = () => {
           return 0;
         });
         
-        // Use the index to pick a different voice from the sorted list
         return sorted[fallbackIndex % sorted.length] || sorted[0];
       }
       
@@ -86,16 +93,16 @@ export const useAudio = () => {
 
     switch (profile) {
       case 'female-1':
-        selectedVoice = findVoice(['samantha', 'victoria', 'zira', 'jenny', 'aria', 'susan', 'allison', 'female', 'google us english'], 'en-US', 0);
+        selectedVoice = findVoice(['female', 'samantha', 'victoria', 'zira', 'jenny', 'aria', 'susan', 'allison'], ['google us english'], 'en-US', 0);
         break;
       case 'female-2':
-        selectedVoice = findVoice(['serena', 'martha', 'fiona', 'hazel', 'libby', 'mia', 'google uk english female', 'uk english female'], 'en-GB', 0);
+        selectedVoice = findVoice(['female', 'serena', 'martha', 'fiona', 'hazel', 'libby', 'mia'], ['google uk english', 'uk english'], 'en-GB', 0);
         break;
       case 'male-1':
-        selectedVoice = findVoice(['alex', 'aaron', 'fred', 'david', 'guy', 'christopher', 'eric', 'male', 'google us english male'], 'en-US', 2); // skip 0/1 to be safe
+        selectedVoice = findVoice(['male', 'alex', 'aaron', 'fred', 'david', 'guy', 'christopher', 'eric'], ['google us english'], 'en-US', 1);
         break;
       case 'male-2':
-        selectedVoice = findVoice(['daniel', 'arthur', 'george', 'ryan', 'google uk english male', 'uk english male'], 'en-GB', 2); // skip 0/1 to be safe
+        selectedVoice = findVoice(['male', 'daniel', 'arthur', 'george', 'ryan', 'google uk english', 'uk english'], 'en-GB', 1);
         break;
     }
 
@@ -137,20 +144,26 @@ export const useAudio = () => {
     const voices = window.speechSynthesis.getVoices();
     if (!voices.length) return null;
 
-    const findVoice = (keywords: string[], fallbackLang: string, fallbackIndex: number = 0) => {
+    const findVoice = (genderKeywords: string[], secondaryKeywords: string[], fallbackLang: string, fallbackIndex: number = 0) => {
+      const allKeywords = [...genderKeywords, ...secondaryKeywords];
       const matches: SpeechSynthesisVoice[] = [];
-      for (const keyword of keywords) {
+      for (const keyword of allKeywords) {
         matches.push(...voices.filter(v => v.name.toLowerCase().includes(keyword.toLowerCase())));
       }
       if (matches.length > 0) {
         const premium = matches.find(v => v.name.toLowerCase().includes('premium') || v.name.toLowerCase().includes('enhanced'));
-        return premium || matches[0];
+        const genderMatch = matches.find(v => genderKeywords.some(gk => v.name.toLowerCase().includes(gk.toLowerCase())));
+        return premium || genderMatch || matches[0];
       }
       const langMatches = voices.filter(v => 
         v.lang.toLowerCase().replace('_', '-').startsWith(fallbackLang.toLowerCase().split('-')[0])
       );
       if (langMatches.length > 0) {
-        const sorted = [...langMatches].sort((a, b) => {
+        const withGender = langMatches.filter(v => 
+          genderKeywords.some(gk => v.name.toLowerCase().includes(gk.toLowerCase()))
+        );
+        const candidates = withGender.length > 0 ? withGender : langMatches;
+        const sorted = [...candidates].sort((a, b) => {
           const aP = a.name.toLowerCase().includes('premium') || a.name.toLowerCase().includes('enhanced');
           const bP = b.name.toLowerCase().includes('premium') || b.name.toLowerCase().includes('enhanced');
           if (aP && !bP) return -1;
@@ -165,16 +178,16 @@ export const useAudio = () => {
     let selectedVoice: SpeechSynthesisVoice | undefined;
     switch (profile) {
       case 'female-1':
-        selectedVoice = findVoice(['samantha', 'victoria', 'zira', 'jenny', 'aria', 'susan', 'allison', 'female', 'google us english'], 'en-US', 0);
+        selectedVoice = findVoice(['female', 'samantha', 'victoria', 'zira', 'jenny', 'aria', 'susan', 'allison'], ['google us english'], 'en-US', 0);
         break;
       case 'female-2':
-        selectedVoice = findVoice(['serena', 'martha', 'fiona', 'hazel', 'libby', 'mia', 'google uk english female', 'uk english female'], 'en-GB', 0);
+        selectedVoice = findVoice(['female', 'serena', 'martha', 'fiona', 'hazel', 'libby', 'mia'], ['google uk english', 'uk english'], 'en-GB', 0);
         break;
       case 'male-1':
-        selectedVoice = findVoice(['alex', 'aaron', 'fred', 'david', 'guy', 'christopher', 'eric', 'male', 'google us english male'], 'en-US', 2);
+        selectedVoice = findVoice(['male', 'alex', 'aaron', 'fred', 'david', 'guy', 'christopher', 'eric'], ['google us english'], 'en-US', 1);
         break;
       case 'male-2':
-        selectedVoice = findVoice(['daniel', 'arthur', 'george', 'ryan', 'google uk english male', 'uk english male'], 'en-GB', 2);
+        selectedVoice = findVoice(['male', 'daniel', 'arthur', 'george', 'ryan', 'google uk english', 'uk english'], 'en-GB', 1);
         break;
     }
     return selectedVoice ? selectedVoice.name : null;

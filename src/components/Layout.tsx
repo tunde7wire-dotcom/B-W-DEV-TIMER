@@ -68,14 +68,10 @@ export const Card: React.FC<{ children: React.ReactNode; className?: string; onC
   );
 };
 
-export const Button: React.FC<{ 
-  children: React.ReactNode; 
+export const Button: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement> & { 
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
   size?: 'sm' | 'md' | 'lg' | 'xl';
-  className?: string;
-  onClick?: () => void;
-  disabled?: boolean;
-}> = ({ children, variant = 'primary', size = 'md', className, onClick, disabled }) => {
+}> = ({ children, variant = 'primary', size = 'md', className, ...props }) => {
   const { settings } = useStore();
   
   const variants = {
@@ -100,8 +96,7 @@ export const Button: React.FC<{
 
   return (
     <button
-      onClick={onClick}
-      disabled={disabled}
+      {...props}
       className={cn(
         "rounded-2xl transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2",
         variants[variant],
